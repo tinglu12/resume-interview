@@ -25,8 +25,6 @@ export function SessionPageClient({ sessionId }: Props) {
     error: jobError,
   } = useJob(session?.job_id ?? "");
 
-  console.log("session", session);
-  console.log("job", job);
   const loading = sessionLoading || (!!session && jobLoading);
   const error = sessionError ?? jobError;
 

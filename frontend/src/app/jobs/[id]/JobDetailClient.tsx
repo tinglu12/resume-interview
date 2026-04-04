@@ -1,9 +1,11 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@clerk/nextjs";
 import { UserButton } from "@clerk/nextjs";
+import { ChevronDown } from "lucide-react";
 import { useJob } from "@/features/jobs/hooks/useJob";
 import { createSession } from "@/features/jobs/api";
 import { Button } from "@/components/ui/button";
@@ -12,6 +14,7 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Separator } from "@/components/ui/separator";
+import { cn } from "@/lib/utils";
 
 interface Props {
   jobId: string;
@@ -21,6 +24,7 @@ export function JobDetailClient({ jobId }: Props) {
   const router = useRouter();
   const { getToken } = useAuth();
   const { job, loading, error } = useJob(jobId);
+  const [descriptionOpen, setDescriptionOpen] = useState(false);
 
   async function handleStartSession() {
     const token = await getToken();
@@ -85,6 +89,39 @@ export function JobDetailClient({ jobId }: Props) {
         </div>
 
         <Separator />
+
+        <Card>
+          <CardHeader className="p-0">
+            <Button
+              type="button"
+              variant="ghost"
+              onClick={() => setDescriptionOpen((v) => !v)}
+              aria-expanded={descriptionOpen}
+              className="h-auto w-full justify-between rounded-none px-4 py-3 font-normal hover:bg-muted/50"
+            >
+              <span className="font-heading text-base font-medium leading-snug">
+                Job description
+              </span>
+              <ChevronDown
+                className={cn(
+                  "size-4 shrink-0 text-muted-foreground transition-transform",
+                  descriptionOpen && "rotate-180",
+                )}
+              />
+            </Button>
+          </CardHeader>
+          {descriptionOpen && (
+            <CardContent className="pt-0">
+              <div className="max-h-96 min-h-0 overflow-y-auto overscroll-y-contain [scrollbar-gutter:stable]">
+                <p className="whitespace-pre-wrap pb-1 pr-2 text-sm leading-relaxed text-muted-foreground">
+                  {job.job_description.trim()
+                    ? job.job_description
+                    : "No description provided."}
+                </p>
+              </div>
+            </CardContent>
+          )}
+        </Card>
 
         <Card>
           <CardHeader>
