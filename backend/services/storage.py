@@ -11,13 +11,20 @@ _endpoint = (
     else f"https://{settings.r2_account_id}.r2.cloudflarestorage.com"
 )
 
+# MinIO and other S3-compatible endpoints need path-style addressing; R2 uses the default virtual host style.
+_use_path_style = bool(settings.r2_endpoint)
+_botocore = Config(
+    signature_version="s3v4",
+    **({"s3": {"addressing_style": "path"}} if _use_path_style else {}),
+)
+
 s3 = boto3.client(
     "s3",
     endpoint_url=_endpoint,
     aws_access_key_id=settings.r2_access_key_id,
     aws_secret_access_key=settings.r2_secret_access_key,
-    config=Config(signature_version="s3v4"),
-    region_name="auto",
+    config=_botocore,
+    region_name="us-east-1" if _use_path_style else "auto",
 )
 
 

@@ -1,7 +1,17 @@
-from pydantic_settings import BaseSettings
+from pathlib import Path
+
+from pydantic_settings import BaseSettings, SettingsConfigDict
+
+_ENV_DIR = Path(__file__).resolve().parent
 
 
 class Settings(BaseSettings):
+    model_config = SettingsConfigDict(
+        env_file=_ENV_DIR / ".env",
+        env_file_encoding="utf-8",
+        extra="ignore",
+    )
+
     database_url: str
     clerk_jwks_url: str
     openai_api_key: str
@@ -11,9 +21,6 @@ class Settings(BaseSettings):
     r2_bucket_name: str
     r2_endpoint: str = ""
     r2_public_url: str = ""
-
-    class Config:
-        env_file = ".env"
 
 
 settings = Settings()
