@@ -9,21 +9,27 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
-import { BlockLibraryPanel } from "@/features/resume-builder/components/BlockLibraryPanel";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+} from "@/components/ui/sheet";
 import { BlockEditor } from "@/features/resume-builder/components/BlockEditor";
 import { ImportResumeDialog } from "@/features/resume-builder/components/ImportResumeDialog";
 import { ParseReviewModal } from "@/features/resume-builder/components/ParseReviewModal";
 import { useBlocks } from "@/features/resume-builder/hooks/useBlocks";
 import { listResumes, saveParsedBlocks } from "@/features/resume-builder/api";
 import type { ParsedBlockPreview, Resume, ResumeBlock } from "@/types";
+import { BlockLibrarySection } from "./_components/BlockLibrarySection";
+import { BlockEditorSheet } from "./_components/BlockEditorSheet";
 
 export function ResumeBuilderDashboardClient() {
   const router = useRouter();
   const { getToken } = useAuth();
   const qc = useQueryClient();
 
-  const { blocks, loading: blocksLoading, error: blocksError, updateBlock } = useBlocks();
+  const { updateBlock } = useBlocks();
 
   const resumesQuery = useQuery({
     queryKey: ["resumes"],
@@ -34,7 +40,9 @@ export function ResumeBuilderDashboardClient() {
     },
   });
 
-  const assembledResumes = (resumesQuery.data ?? []).filter((r) => r.resume_type === "builder");
+  const assembledResumes = (resumesQuery.data ?? []).filter(
+    (r) => r.resume_type === "builder",
+  );
 
   // UI state
   const [editingBlock, setEditingBlock] = useState<ResumeBlock | null>(null);
@@ -52,7 +60,10 @@ export function ResumeBuilderDashboardClient() {
     setShowReview(true);
   }
 
-  async function handleSaveParsed(displayName: string, blocks: ParsedBlockPreview[]) {
+  async function handleSaveParsed(
+    displayName: string,
+    blocks: ParsedBlockPreview[],
+  ) {
     if (!parseSource) return;
     setIsSaving(true);
     setSaveError(null);
@@ -76,7 +87,11 @@ export function ResumeBuilderDashboardClient() {
   }
 
   const date = (s: string) =>
-    new Date(s).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+    new Date(s).toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+    });
 
   return (
     <div className="flex flex-col gap-8">
@@ -91,7 +106,11 @@ export function ResumeBuilderDashboardClient() {
         <div className="flex items-center justify-between mb-3">
           <h2 className="text-lg font-semibold">My resumes</h2>
           <div className="flex gap-2">
-            <Button variant="outline" size="sm" onClick={() => setShowImport(true)}>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setShowImport(true)}
+            >
               Import from PDF
             </Button>
             <Button size="sm" asChild>
@@ -102,30 +121,46 @@ export function ResumeBuilderDashboardClient() {
 
         {resumesQuery.isPending ? (
           <div className="grid gap-3 sm:grid-cols-2">
-            {[...Array(2)].map((_, i) => <Skeleton key={i} className="h-24 rounded-xl" />)}
+            {[...Array(2)].map((_, i) => (
+              <Skeleton key={i} className="h-24 rounded-xl" />
+            ))}
           </div>
         ) : assembledResumes.length === 0 ? (
           <div className="rounded-xl border-2 border-dashed border-border py-10 text-center">
-            <p className="text-muted-foreground text-sm mb-3">No resumes yet.</p>
-            <Button variant="outline" size="sm" onClick={() => setShowImport(true)}>
+            <p className="text-muted-foreground text-sm mb-3">
+              No resumes yet.
+            </p>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setShowImport(true)}
+            >
               Import from PDF
             </Button>
           </div>
         ) : (
           <div className="grid gap-3 sm:grid-cols-2">
             {assembledResumes.map((r) => (
-              <Link key={r.id} href={`/resume-builder/resumes/${r.id}`} className="block group">
+              <Link
+                key={r.id}
+                href={`/resume-builder/resumes/${r.id}`}
+                className="block group"
+              >
                 <Card className="transition-shadow hover:shadow-md h-full">
                   <CardHeader className="pb-2">
                     <div className="flex items-start justify-between gap-4">
                       <CardTitle className="text-sm font-semibold">
                         {r.display_name ?? r.filename}
                       </CardTitle>
-                      <span className="text-xs text-muted-foreground shrink-0">{date(r.created_at)}</span>
+                      <span className="text-xs text-muted-foreground shrink-0">
+                        {date(r.created_at)}
+                      </span>
                     </div>
                   </CardHeader>
                   <CardContent>
-                    <span className="text-xs text-muted-foreground">Builder resume</span>
+                    <span className="text-xs text-muted-foreground">
+                      Builder resume
+                    </span>
                   </CardContent>
                 </Card>
               </Link>
@@ -134,40 +169,12 @@ export function ResumeBuilderDashboardClient() {
         )}
       </section>
 
-      {/* Block library section */}
-      <section>
-        <div className="flex items-center justify-between mb-3">
-          <h2 className="text-lg font-semibold">Block library</h2>
-          <Button size="sm" asChild>
-            <Link href="/resume-builder/blocks/new">+ New block</Link>
-          </Button>
-        </div>
-        <BlockLibraryPanel
-          blocks={blocks}
-          loading={blocksLoading}
-          error={blocksError}
-          onBlockClick={(b) => setEditingBlock(b)}
-        />
-      </section>
+      <BlockLibrarySection onBlockClick={setEditingBlock} />
 
-      {/* Block editor sheet */}
-      <Sheet open={!!editingBlock} onOpenChange={(o) => !o && setEditingBlock(null)}>
-        <SheetContent side="right" className="w-full sm:max-w-lg overflow-y-auto">
-          <SheetHeader>
-            <SheetTitle>Edit block</SheetTitle>
-          </SheetHeader>
-          {editingBlock && (
-            <BlockEditor
-              block={editingBlock}
-              onSave={async (data) => {
-                await updateBlock({ id: editingBlock.id, data });
-                setEditingBlock(null);
-              }}
-              onCancel={() => setEditingBlock(null)}
-            />
-          )}
-        </SheetContent>
-      </Sheet>
+      <BlockEditorSheet
+        editingBlock={editingBlock}
+        setEditingBlock={setEditingBlock}
+      />
 
       {/* Import dialog */}
       <ImportResumeDialog

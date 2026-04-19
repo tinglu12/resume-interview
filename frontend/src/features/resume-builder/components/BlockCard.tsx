@@ -2,7 +2,17 @@
 
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import type { BlockType, PersonalInfoContent, ResumeBlock, WorkExperienceContent, ProjectContent, EducationContent } from "@/types";
+import type {
+  BlockType,
+  PersonalInfoContent,
+  ResumeBlock,
+  WorkExperienceContent,
+  ProjectContent,
+  EducationContent,
+} from "@/types";
+import { SkillsContent } from "@/types";
+import { SummaryContent } from "@/types";
+import { CustomContent } from "@/types";
 
 const BLOCK_TYPE_LABELS: Record<BlockType, string> = {
   work_experience: "Work",
@@ -39,13 +49,13 @@ function getExcerpt(block: ResumeBlock): string {
       return `${ec.degree}${ec.field_of_study ? ` in ${ec.field_of_study}` : ""} · ${ec.institution}`;
     }
     case "skills": {
-      const sc = block.content as import("@/types").SkillsContent;
+      const sc = block.content as SkillsContent;
       return sc.groups.map((g) => g.label).join(", ");
     }
     case "summary":
-      return String((block.content as import("@/types").SummaryContent).text ?? "").slice(0, 100);
+      return String((block.content as SummaryContent).text ?? "").slice(0, 100);
     case "custom":
-      return String((block.content as import("@/types").CustomContent).heading ?? "");
+      return String((block.content as CustomContent).heading ?? "");
     case "personal_info": {
       const pi = block.content as PersonalInfoContent;
       return [pi.email, pi.phone].filter(Boolean).join(" · ");
@@ -63,7 +73,8 @@ interface Props {
 }
 
 export function BlockCard({ block, onClick, onAddToResume, isAdded }: Props) {
-  const colorClass = BLOCK_TYPE_COLORS[block.block_type] ?? "bg-gray-100 text-gray-800";
+  const colorClass =
+    BLOCK_TYPE_COLORS[block.block_type] ?? "bg-gray-100 text-gray-800";
   const label = BLOCK_TYPE_LABELS[block.block_type] ?? block.block_type;
   const excerpt = getExcerpt(block);
 
@@ -77,7 +88,9 @@ export function BlockCard({ block, onClick, onAddToResume, isAdded }: Props) {
           <CardTitle className="text-sm font-medium leading-snug">
             {block.title}
           </CardTitle>
-          <span className={`shrink-0 rounded-full px-2 py-0.5 text-xs font-medium ${colorClass}`}>
+          <span
+            className={`shrink-0 rounded-full px-2 py-0.5 text-xs font-medium ${colorClass}`}
+          >
             {label}
           </span>
         </div>
@@ -85,7 +98,9 @@ export function BlockCard({ block, onClick, onAddToResume, isAdded }: Props) {
       {(excerpt || onAddToResume) && (
         <CardContent className="pt-0">
           {excerpt && (
-            <p className="text-xs text-muted-foreground line-clamp-2 mb-2">{excerpt}</p>
+            <p className="text-xs text-muted-foreground line-clamp-2 mb-2">
+              {excerpt}
+            </p>
           )}
           {onAddToResume && (
             <button

@@ -42,7 +42,8 @@ export function BlockLibraryPanel({
 
   const visible = blocks.filter((b) => {
     if (filter !== "all" && b.block_type !== filter) return false;
-    if (search && !b.title.toLowerCase().includes(search.toLowerCase())) return false;
+    if (search && !b.title.toLowerCase().includes(search.toLowerCase()))
+      return false;
     return true;
   });
 
@@ -72,7 +73,7 @@ export function BlockLibraryPanel({
         ))}
       </div>
 
-      <div className="flex-1 overflow-y-auto flex flex-col gap-2 pr-1">
+      <div className="flex-1 overflow-y-auto flex flex-col gap-2 p-2">
         {loading && (
           <>
             {[...Array(4)].map((_, i) => (
@@ -89,7 +90,9 @@ export function BlockLibraryPanel({
 
         {!loading && !error && visible.length === 0 && (
           <p className="text-sm text-muted-foreground text-center pt-6">
-            {blocks.length === 0 ? "No blocks yet." : "No blocks match your search."}
+            {blocks.length === 0
+              ? "No blocks yet."
+              : "No blocks match your search."}
           </p>
         )}
 
@@ -98,7 +101,9 @@ export function BlockLibraryPanel({
             key={block.id}
             block={block}
             onClick={() => onBlockClick(block)}
-            onAddToResume={onAddToResume ? () => onAddToResume(block) : undefined}
+            onAddToResume={
+              onAddToResume ? () => onAddToResume(block) : undefined
+            }
             isAdded={attachedIds.has(block.id)}
           />
         ))}
