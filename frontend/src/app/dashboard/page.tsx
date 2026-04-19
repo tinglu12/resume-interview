@@ -10,7 +10,12 @@ export default function DashboardPage() {
         <Link href="/dashboard" className="text-lg font-bold">
           Interview Prep
         </Link>
-        <UserButton />
+        <div className="flex items-center gap-4">
+          <Link href="/resume-builder" className="text-sm text-muted-foreground hover:text-foreground">
+            Resume Builder
+          </Link>
+          <UserButton />
+        </div>
       </header>
       <main className="flex-1 px-6 py-8 max-w-4xl mx-auto w-full">
         <div className="flex items-center justify-between mb-4">

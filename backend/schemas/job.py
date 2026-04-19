@@ -10,9 +10,14 @@ class QuestionItem(BaseModel):
 
 
 class JobCreate(BaseModel):
+    user_id: str
     job_title: str | None = None
     company: str | None = None
     job_description: str
+    resume_content_type: str | None = None
+    resume_filename: str | None = None
+    save_resume: bool = True
+    resume_id: uuid.UUID | None = None
 
 
 class JobOut(BaseModel):

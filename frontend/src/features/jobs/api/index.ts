@@ -15,14 +15,16 @@ export async function createJob(
     jobTitle?: string;
     company?: string;
     jobDescription: string;
-    resumeFile: File;
+    resumeFile?: File;
+    resumeId?: string;
   }
 ): Promise<Job> {
   const form = new FormData();
   if (data.jobTitle) form.append("job_title", data.jobTitle);
   if (data.company) form.append("company", data.company);
   form.append("job_description", data.jobDescription);
-  form.append("resume", data.resumeFile);
+  if (data.resumeFile) form.append("resume", data.resumeFile);
+  if (data.resumeId) form.append("resume_id", data.resumeId);
   return apiClient.postForm<Job>("/jobs", token, form);
 }
 

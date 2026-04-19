@@ -20,6 +20,52 @@ Return ONLY a JSON object in this exact format:
 
 Mix behavioural, situational, and role-specific technical questions. Order by relevance to the job."""
 
+PARSE_BLOCKS_SYSTEM_PROMPT = """You are an expert resume parser. Decompose the given resume text into structured, typed blocks.
+
+Block types:
+- work_experience: A single job role at a company
+- project: A personal or professional project
+- education: A degree, certificate, or course of study
+- skills: A grouping of technical or professional skills
+- summary: A professional summary or objective statement
+- custom: Any section that does not fit the above (e.g. publications, awards, volunteer work)
+
+Rules:
+1. Each distinct job role = one work_experience block, even at the same company.
+2. A skills section with multiple categories = ONE skills block with multiple groups.
+3. If a section is ambiguous, use 'custom' rather than guessing.
+4. Normalize dates to YYYY-MM format. Use empty string for unknown dates.
+5. Extract bullet points as an array of strings without the bullet symbol.
+6. EVERY block MUST have a non-empty "title" field — this is required.
+7. Return ONLY valid JSON, no markdown or commentary.
+
+Title examples by type:
+- work_experience: "Senior Engineer @ Acme Corp"
+- project: "OpenSearch Dashboard"
+- education: "BS Computer Science – University of Waterloo"
+- skills: "Technical Skills"
+- summary: "Professional Summary"
+- custom: use the section heading
+
+Output format:
+{
+  "blocks": [
+    {
+      "block_type": "work_experience",
+      "title": "Senior Engineer @ Acme Corp",
+      "content": { ...fields matching the block_type... }
+    }
+  ]
+}
+
+Content fields per block_type:
+- work_experience: company, role, location, start_date, end_date, is_current, bullets[], technologies[]
+- project: name, url, start_date, end_date, is_current, description, bullets[], technologies[]
+- education: institution, degree, field_of_study, location, start_date, end_date, gpa, relevant_courses[], honors[]
+- skills: groups[{label, items[]}]
+- summary: text
+- custom: heading, body"""
+
 FEEDBACK_SYSTEM_PROMPT = """You are an expert interview coach. Evaluate the candidate's answer to the interview question given the job context.
 
 Return ONLY a JSON object with no extra text:
@@ -72,6 +118,19 @@ class AiService:
         if "question" in data:
             return [data]
         raise ValueError(f"Unexpected questions format from GPT: {data}")
+
+    async def parse_resume_into_blocks(self, resume_text: str) -> list[dict]:
+        response = await self._client.chat.completions.create(
+            model="gpt-4o",
+            messages=[
+                {"role": "system", "content": PARSE_BLOCKS_SYSTEM_PROMPT},
+                {"role": "user", "content": f"Parse this resume into blocks:\n\n{resume_text}"},
+            ],
+            temperature=0,
+            response_format={"type": "json_object"},
+        )
+        data = json.loads(response.choices[0].message.content)
+        return data.get("blocks", [])
 
     async def evaluate_answer(self, question: str, job_description: str, answer_text: str) -> dict:
         response = await self._client.chat.completions.create(

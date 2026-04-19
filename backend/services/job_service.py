@@ -8,6 +8,8 @@ from schemas import JobSummary
 from services.ai import AiService
 from services.errors import ServiceError
 from services.pdf import PdfService
+from services.resume_block_service import ResumeBlockService
+from services.resume_service import ResumeService
 from services.storage import StorageService
 
 
@@ -19,11 +21,16 @@ class JobService:
         pdf: PdfService | None = None,
         storage: StorageService | None = None,
         ai: AiService | None = None,
+        resume_service: ResumeService | None = None,
     ):
+        self._db = db
         self._jobs = JobRepository(db)
         self._pdf = pdf or PdfService()
         self._storage = storage or StorageService()
         self._ai = ai or AiService()
+        self._resume_service = resume_service or ResumeService(
+            db, storage=self._storage, pdf=self._pdf, ai=self._ai
+        )
 
     async def create_job(
         self,
@@ -32,33 +39,38 @@ class JobService:
         job_title: str | None,
         company: str | None,
         job_description: str,
-        resume_bytes: bytes,
+        resume_bytes: bytes | None,
         resume_content_type: str | None,
+        resume_filename: str | None,
+        save_resume: bool = True,
+        resume_id: uuid.UUID | None = None,
     ) -> Job:
-        if resume_content_type not in ("application/pdf", "application/octet-stream"):
-            raise ServiceError(400, "Resume must be a PDF file")
+        if resume_id:
+            resume = await self._resume_service.get_resume(resume_id, user_id)
+            job_resume_id = resume.id
 
-        if not resume_bytes.startswith(b"%PDF"):
-            raise ServiceError(400, "File does not appear to be a valid PDF")
+            # For builder-type resumes, generate text from blocks
+            if resume.resume_type == "builder":
+                block_svc = ResumeBlockService(self._db)
+                resume_text = await block_svc.get_resume_text_for_assembled(resume_id, user_id)
+                resume_url = resume.resume_url or ""
+            else:
+                resume_text = resume.resume_text or ""
+                resume_url = resume.resume_url or ""
 
-        key = f"resumes/{uuid.uuid4()}.pdf"
-        resume_url = self._storage.upload_bytes(resume_bytes, key, "application/pdf")
-
-        resume_text = self._pdf.extract_text(resume_bytes)
-        if not resume_text.strip():
-            try:
-                page_images = self._pdf.pdf_pages_as_base64_images(resume_bytes)
-            except Exception as e:
-                print(f"DEBUG: image render failed: {e}")
-                page_images = []
-            if not page_images:
-                raise ServiceError(
-                    400,
-                    "Could not read this PDF. Please try re-saving or exporting it as a new PDF and uploading again.",
-                )
-            resume_text = await self._ai.ocr_resume(page_images)
-        if not resume_text.strip():
-            raise ServiceError(400, "Could not extract text from the PDF")
+            if not resume_text.strip():
+                raise ServiceError(400, "Selected resume has no content to generate questions from")
+        else:
+            resume = await self._resume_service.upload_resume(
+                user_id=user_id,
+                filename=resume_filename,
+                resume_bytes=resume_bytes,
+                content_type=resume_content_type,
+                save_resume=save_resume,
+            )
+            job_resume_id = resume.id if save_resume else None
+            resume_text = resume.resume_text or ""
+            resume_url = resume.resume_url or ""
 
         questions_raw = await self._ai.generate_questions(resume_text, job_description)
 
@@ -70,6 +82,7 @@ class JobService:
             resume_url=resume_url,
             resume_text=resume_text,
             questions=questions_raw,
+            resume_id=job_resume_id,
         )
         return await self._jobs.create(job)
 

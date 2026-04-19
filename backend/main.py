@@ -2,7 +2,8 @@ from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
-from routers import answers, jobs, sessions
+from routers import answers, jobs, sessions, resume
+from routers.resume_blocks import router as resume_blocks_router
 from services.errors import ServiceError
 
 app = FastAPI(title="Resume Interview API")
@@ -26,6 +27,8 @@ app.add_middleware(
 app.include_router(jobs.router)
 app.include_router(sessions.router)
 app.include_router(answers.router)
+app.include_router(resume.router)
+app.include_router(resume_blocks_router)
 
 
 @app.get("/health")
