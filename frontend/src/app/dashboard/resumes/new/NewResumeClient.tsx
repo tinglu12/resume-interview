@@ -25,7 +25,7 @@ export function NewResumeClient() {
       const token = await getToken();
       if (!token) throw new Error("Not authenticated");
       const resume = await createAssembledResume(token, displayName.trim());
-      router.push(`/resume-builder/resumes/${resume.id}`);
+      router.push(`/dashboard/resumes/${resume.id}`);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Failed to create resume");
       setLoading(false);

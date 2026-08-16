@@ -19,7 +19,7 @@ export function BlockLibrarySection() {
       <div className="flex items-center justify-between mb-3">
         <h2 className="text-lg font-semibold">Block library</h2>
         <Button size="sm" asChild>
-          <Link href="/resume-builder/blocks/new">+ New block</Link>
+          <Link href="/dashboard/blocks/new">+ New block</Link>
         </Button>
       </div>
       <BlockLibraryPanel

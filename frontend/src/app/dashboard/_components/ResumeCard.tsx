@@ -1,6 +1,4 @@
-import { Button } from "@/components/ui/button";
 import Link from "next/link";
-import { Skeleton } from "@/components/ui/skeleton";
 import { Card, CardTitle } from "@/components/ui/card";
 import type { Resume } from "@/types";
 
@@ -22,8 +20,8 @@ export function ResumeCard(props: ResumeCardProps) {
 
   return (
     <Card key={resume.id} className="p-4.5 gap-3.5">
-      <Link href={`/resume-builder/resumes/${resume.id}`} className="block group">
-        <div className="h-[78px] bg-background border border-hairline rounded-md px-3 py-2.5 flex flex-col gap-1.5 mb-3.5">
+      <Link href={`/dashboard/resumes/${resume.id}`} className="block group">
+        <div className="h-19.5 bg-background border border-hairline rounded-md px-3 py-2.5 flex flex-col gap-1.5 mb-3.5">
           <div className="w-[60%] h-1.5 bg-foreground/70 rounded-full" />
           <div className="w-[38%] h-1 bg-muted-foreground/40 rounded-full mt-0.5" />
           <div className="w-[90%] h-1 bg-hairline rounded-full mt-1.5" />
@@ -44,7 +42,7 @@ export function ResumeCard(props: ResumeCardProps) {
           Duplicate
         </button>
         <Link
-          href={`/resume-builder/resumes/${resume.id}`}
+          href={`/dashboard/resumes/${resume.id}`}
           className="text-xs font-semibold text-accent-teal hover:underline"
         >
           Open →

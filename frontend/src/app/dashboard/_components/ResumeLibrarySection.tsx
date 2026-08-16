@@ -32,7 +32,7 @@ export function ResumeLibrarySection({
         </div>
         <div className="flex gap-2.5 shrink-0">
           <Button variant="outline" size="sm" asChild>
-            <Link href="/resume-builder/blocks">Block Library</Link>
+            <Link href="/dashboard/blocks">Block Library</Link>
           </Button>
           <Button
             variant="outline"
@@ -42,7 +42,7 @@ export function ResumeLibrarySection({
             Import from PDF
           </Button>
           <Button size="sm" asChild>
-            <Link href="/resume-builder/resumes/new">+ New resume</Link>
+            <Link href="/dashboard/resumes/new">+ New resume</Link>
           </Button>
         </div>
       </div>

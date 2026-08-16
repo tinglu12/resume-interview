@@ -15,7 +15,7 @@ export function ResumeMap({ isLoading, resumes, onDuplicateClick }: ResumeMapPro
     return (
       <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
         {[...Array(4)].map((_, i) => (
-          <Skeleton key={i} className="h-[220px] rounded-xl" />
+          <Skeleton key={i} className="h-55 rounded-xl" />
         ))}
       </div>
     );
@@ -26,9 +26,9 @@ export function ResumeMap({ isLoading, resumes, onDuplicateClick }: ResumeMapPro
         <ResumeCard key={resume.id} resume={resume} onDuplicateClick={onDuplicateClick} />
       ))}
 
-      <Link href="/resume-builder/resumes/new" className="block">
-        <div className="h-full min-h-[220px] bg-card border-[1.5px] border-dashed border-muted-foreground/40 rounded-xl p-4.5 flex flex-col items-center justify-center gap-2 text-muted-foreground hover:border-accent-teal hover:text-accent-teal transition-colors">
-          <div className="w-[30px] h-[30px] rounded-full bg-panel flex items-center justify-center text-base text-foreground">
+      <Link href="/dashboard/resumes/new" className="block">
+        <div className="h-full min-h-55 bg-card border-[1.5px] border-dashed border-muted-foreground/40 rounded-xl p-4.5 flex flex-col items-center justify-center gap-2 text-muted-foreground hover:border-accent-teal hover:text-accent-teal transition-colors">
+          <div className="w-7.5 h-7.5 rounded-full bg-panel flex items-center justify-center text-base text-foreground">
             +
           </div>
           <div className="text-[13px] font-semibold">New resume</div>

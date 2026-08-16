@@ -1,46 +1,92 @@
 "use client";
 
-import Link from "next/link";
-import { useJobs } from "@/features/jobs/hooks/useJobs";
-import { JobCard } from "@/features/jobs/components/JobCard";
-import { Skeleton } from "@/components/ui/skeleton";
+import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { ImportResumeDialog } from "@/features/resume-display-upload/components/ImportResumeDialog";
+import { ParseReviewModal } from "@/features/resume-display-upload/components/ParseReviewModal";
+import { DuplicateResumeModal } from "@/features/resume-display-upload/components/DuplicateResumeModal";
+import { useResumeFetch } from "@/features/resume-display-upload/hook/useResumeFetch";
+import { useResumeImport } from "@/features/resume-display-upload/hook/useResumeImport";
+import type { ParsedBlockPreview, Resume } from "@/types";
+import { BlockLibrarySection } from "./_components/BlockLibrarySection";
+import { ResumeLibrarySection } from "./_components/ResumeLibrarySection";
 
 export function DashboardClient() {
-  const { jobs, loading, error } = useJobs();
+  const router = useRouter();
 
-  if (loading) {
-    return (
-      <div className="grid gap-4 sm:grid-cols-2">
-        {[...Array(4)].map((_, i) => (
-          <Skeleton key={i} className="h-28 rounded-xl" />
-        ))}
-      </div>
-    );
+  const { resumes, assembledResumes, loading: resumesLoading } = useResumeFetch();
+  const { saveParsed, isSaving, error: saveError } = useResumeImport();
+
+  // UI state
+  const [showImport, setShowImport] = useState(false);
+  const [parseSource, setParseSource] = useState<string | null>(null);
+  const [parsedBlocks, setParsedBlocks] = useState<ParsedBlockPreview[]>([]);
+  const [showReview, setShowReview] = useState(false);
+  const [duplicating, setDuplicating] = useState<Resume | null>(null);
+
+  function handleParsed(resumeId: string, blocks: ParsedBlockPreview[]) {
+    setParseSource(resumeId);
+    setParsedBlocks(blocks);
+    setShowImport(false);
+    setShowReview(true);
   }
 
-  if (error) {
-    return (
-      <Alert variant="destructive">
-        <AlertDescription>{error}</AlertDescription>
-      </Alert>
-    );
-  }
-
-  if (jobs.length === 0) {
-    return (
-      <div className="rounded-xl border-2 border-dashed border-border py-16 text-center">
-        <p className="text-muted-foreground mb-4">No jobs yet.</p>
-        <Link href="/jobs/new">Create your first job posting</Link>
-      </div>
-    );
+  async function handleSaveParsed(
+    displayName: string,
+    blocks: ParsedBlockPreview[],
+  ) {
+    if (!parseSource) return;
+    try {
+      const result = await saveParsed({
+        resume_id: parseSource,
+        display_name: displayName,
+        blocks,
+      });
+      setShowReview(false);
+      router.push(`/dashboard/resumes/${result.assembled_resume_id}`);
+    } catch {
+      // surfaced via `saveError` from the hook
+    }
   }
 
   return (
-    <div className="grid gap-4 sm:grid-cols-2">
-      {jobs.map((job) => (
-        <JobCard key={job.id} job={job} />
-      ))}
+    <div className="flex flex-col gap-8">
+      {saveError && (
+        <Alert variant="destructive">
+          <AlertDescription>{saveError}</AlertDescription>
+        </Alert>
+      )}
+
+      <ResumeLibrarySection
+        resumes={assembledResumes}
+        isLoading={resumesLoading}
+        onImportClick={() => setShowImport(true)}
+        onDuplicateClick={setDuplicating}
+      />
+
+      <BlockLibrarySection />
+
+      {/* Import dialog */}
+      <ImportResumeDialog
+        open={showImport}
+        resumes={resumes}
+        loadingResumes={resumesLoading}
+        onParsed={handleParsed}
+        onCancel={() => setShowImport(false)}
+      />
+
+      {/* Parse review modal */}
+      <ParseReviewModal
+        open={showReview}
+        blocks={parsedBlocks}
+        onSave={handleSaveParsed}
+        onCancel={() => setShowReview(false)}
+        isSaving={isSaving}
+      />
+
+      {/* Duplicate resume modal */}
+      <DuplicateResumeModal resume={duplicating} onClose={() => setDuplicating(null)} />
     </div>
   );
 }

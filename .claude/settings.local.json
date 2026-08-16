@@ -27,7 +27,24 @@
       "Bash(sed -i 's#import { getResume, getResumeBlocks, getResumeSections } from \"@/features/resume-builder/api\";#import { getResumeBlocks, getResumeSections } from \"@/features/resume-builder/api\";\\\\nimport { getResume } from \"@/features/resume-display-upload/api\";#' features/resume-builder/components/PdfDownloadButton.tsx)",
       "Bash(sed -i 's#import { getResume } from \"@/features/resume-builder/api\";#import { getResume } from \"@/features/resume-display-upload/api\";#' app/resume-builder/resumes/\\\\[resumeId\\\\]/ResumeCanvasClient.tsx)",
       "Bash(chmod +x run.sh)",
-      "Bash(bash -n run.sh)"
+      "Bash(bash -n run.sh)",
+      "Bash(.venv/bin/python -c \"import typing_extensions as t;print\\(t.__version__ if hasattr\\(t,'__version__'\\) else 'n/a'\\)\")",
+      "Bash(git mv *)",
+      "Bash(xargs sed -i 's#/resume-builder#/dashboard#g')",
+      "Bash(sed -i -e s/ResumeBuilderNav/DashboardNav/g src/components/layout/DashboardNav.tsx)",
+      "Bash(sed -i -e s/ResumeBuilderDashboardClient/DashboardClient/g src/app/dashboard/DashboardClient.tsx)",
+      "Bash(sed -i -e 's#@/components/layout/ResumeBuilderNav#@/components/layout/DashboardNav#g' -e s/ResumeBuilderNav/DashboardNav/g -e s/ResumeBuilderLayout/DashboardLayout/g src/app/dashboard/layout.tsx)",
+      "Bash(sed -i -e 's#\\\\./ResumeBuilderDashboardClient#./DashboardClient#g' -e s/ResumeBuilderDashboardClient/DashboardClient/g -e s/ResumeBuilderPage/DashboardPage/g src/app/dashboard/page.tsx)",
+      "Bash(xargs sed -i 's#@/features/dashboard#@/features/resume-builder#g')",
+      "Bash(ps *)",
+      "Bash(kill 30335 30334)",
+      "Bash(nohup npm run dev)",
+      "Bash(disown)",
+      "Bash(echo \"started pid $!\")",
+      "Bash(break)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\\\\n\" http://localhost:3000/dashboard)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\\\\n\" http://localhost:3000/)",
+      "Bash(curl -sv http://localhost:3000/dashboard)"
     ]
   }
 }

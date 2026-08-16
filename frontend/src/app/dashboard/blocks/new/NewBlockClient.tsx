@@ -64,12 +64,12 @@ export function NewBlockClient() {
           setError(null);
           try {
             await createBlock({ block_type: blockType, title, content });
-            router.push("/resume-builder");
+            router.push("/dashboard");
           } catch (e) {
             setError(e instanceof Error ? e.message : "Failed to create block");
           }
         }}
-        onCancel={() => router.push("/resume-builder")}
+        onCancel={() => router.push("/dashboard")}
         isSaving={isCreating}
       />
     </div>

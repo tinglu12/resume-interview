@@ -7,7 +7,7 @@ function NavCta({ signedIn }: { signedIn: boolean }) {
   if (signedIn) {
     return (
       <Link
-        href="/resume-builder"
+        href="/dashboard"
         className="font-sans text-[13.5px] font-semibold text-primary-foreground bg-foreground rounded-lg px-[18px] py-[9px] hover:opacity-90"
       >
         Go to Resume Builder
@@ -71,7 +71,7 @@ export default async function Home() {
           </p>
           <div className="flex gap-3 items-center">
             <Link
-              href={signedIn ? "/resume-builder" : "/sign-up"}
+              href={signedIn ? "/dashboard" : "/sign-up"}
               className="font-sans text-[14.5px] font-semibold text-primary-foreground bg-foreground rounded-lg px-[22px] py-[13px] hover:opacity-90"
             >
               Upload your resume
@@ -295,7 +295,7 @@ export default async function Home() {
           Upload your existing resume and see it as blocks in under a minute.
         </p>
         <Link
-          href={signedIn ? "/resume-builder" : "/sign-up"}
+          href={signedIn ? "/dashboard" : "/sign-up"}
           className="inline-block font-sans text-[15px] font-semibold text-primary-foreground bg-foreground rounded-lg px-[26px] py-3.5 hover:opacity-90"
         >
           Upload your resume
