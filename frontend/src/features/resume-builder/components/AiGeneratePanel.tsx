@@ -7,6 +7,7 @@ import {
   type GenerateTone,
 } from "@/features/resume-builder/lib/mockGenerateBlockContent";
 import type { ResumeBlock, SummaryContent, WorkExperienceContent } from "@/types";
+import { PlaceholderText } from "./PlaceholderText";
 
 const TONES: { value: GenerateTone; label: string }[] = [
   { value: "concise", label: "Concise" },
@@ -18,26 +19,6 @@ const TONES: { value: GenerateTone; label: string }[] = [
 // Resets on page reload; not a real daily limit.
 const SESSION_CAP = 25;
 const REGENERATE_CAP = 5;
-
-function PlaceholderText({ text }: { text: string }) {
-  const parts = text.split(/(\[X\])/g);
-  return (
-    <>
-      {parts.map((part, i) =>
-        part === "[X]" ? (
-          <span
-            key={i}
-            className="font-mono text-[10px] bg-proof-accent/25 text-proof-fg rounded px-1 py-[1px]"
-          >
-            [X]
-          </span>
-        ) : (
-          <span key={i}>{part}</span>
-        )
-      )}
-    </>
-  );
-}
 
 function getCurrentLines(block: ResumeBlock): string[] {
   if (block.block_type === "work_experience") {

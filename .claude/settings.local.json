@@ -44,7 +44,9 @@
       "Bash(break)",
       "Bash(curl -s -o /dev/null -w \"%{http_code}\\\\n\" http://localhost:3000/dashboard)",
       "Bash(curl -s -o /dev/null -w \"%{http_code}\\\\n\" http://localhost:3000/)",
-      "Bash(curl -sv http://localhost:3000/dashboard)"
+      "Bash(curl -sv http://localhost:3000/dashboard)",
+      "Bash(xargs -I{} sh -c 'echo \"=== {} ===\"; grep -nE \"^\\(function|export function\\) [A-Z]\" {}')",
+      "Bash(git stash *)"
     ]
   }
 }

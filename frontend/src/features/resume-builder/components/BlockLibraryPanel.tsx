@@ -71,17 +71,17 @@ export function BlockLibraryPanel({
   });
 
   return (
-    <div className="flex flex-col gap-3 h-full">
+    <div className="flex-1 min-h-0 flex flex-col gap-3">
       <Input
         placeholder="Search blocks…"
         value={search}
         onChange={(e) => setSearch(e.target.value)}
-        className="text-sm"
+        className="text-sm shrink-0"
       />
 
       {/* Active section banner */}
       {activeSectionType ? (
-        <div className="flex items-center justify-between rounded-lg bg-primary/10 px-3 py-1.5 text-xs font-medium text-primary">
+        <div className="shrink-0 flex items-center justify-between rounded-lg bg-primary/10 px-3 py-1.5 text-xs font-medium text-primary">
           <span>Adding to: {SECTION_TYPE_LABELS[activeSectionType]}</span>
           {onClearActiveSection && (
             <button
@@ -95,7 +95,7 @@ export function BlockLibraryPanel({
         </div>
       ) : (
         /* Filter pills */
-        <div className="flex flex-wrap gap-1">
+        <div className="shrink-0 flex flex-wrap gap-1">
           {BLOCK_TYPE_FILTERS.map((f) => (
             <button
               key={f.value}
@@ -112,7 +112,7 @@ export function BlockLibraryPanel({
         </div>
       )}
 
-      <div className="flex flex-col gap-2 p-2 overflow-y-auto">
+      <div className="flex-1 min-h-0 flex flex-col gap-2 p-2 overflow-y-auto">
         {loading && (
           <>
             {[...Array(4)].map((_, i) => (
