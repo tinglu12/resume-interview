@@ -68,7 +68,10 @@ export function ResumeCanvas({
   }
 
   return (
-    <>
+    <section className="flex-1  overflow-y-auto p-6">
+      <h2 className="font-mono text-[11px] font-medium mb-4 text-muted-foreground uppercase tracking-wide">
+        Resume
+      </h2>
       {/* Pinned personal info section — always first, not draggable */}
       {personalInfoSection && (
         <SectionContainer
@@ -144,6 +147,6 @@ export function ResumeCanvas({
         onSave={onBlockSaved}
         isSaving={isSaving}
       />
-    </>
+    </section>
   );
 }

@@ -126,29 +126,22 @@ export function ResumeCanvasClient({ resumeId }: Props) {
         />
 
         {/* Middle: Canvas — always visible, expands to fill freed rail space */}
-        <section className="flex-1 min-w-0 min-h-0 overflow-y-auto p-6">
-          <div className="max-w-2xl mx-auto">
-            <h2 className="font-mono text-[11px] font-medium mb-4 text-muted-foreground uppercase tracking-wide">
-              Resume
-            </h2>
-            <ResumeCanvas
-              resumeId={resumeId}
-              sections={sections}
-              loading={sectionsLoading}
-              error={sectionsError}
-              activeSectionId={activeSectionId}
-              onActivateSection={handleActivateSection}
-              onDetachBlock={handleDetachBlock}
-              onDeleteSection={handleDeleteSection}
-              onRenameSection={handleRenameSection}
-              onAddSection={handleAddSection}
-              onBlockSaved={handleBlockSaved}
-              isSaving={isUpdating}
-              getUsageCount={getUsageCount}
-              getUsageResumeNames={getUsageResumeNames}
-            />
-          </div>
-        </section>
+        <ResumeCanvas
+          resumeId={resumeId}
+          sections={sections}
+          loading={sectionsLoading}
+          error={sectionsError}
+          activeSectionId={activeSectionId}
+          onActivateSection={handleActivateSection}
+          onDetachBlock={handleDetachBlock}
+          onDeleteSection={handleDeleteSection}
+          onRenameSection={handleRenameSection}
+          onAddSection={handleAddSection}
+          onBlockSaved={handleBlockSaved}
+          isSaving={isUpdating}
+          getUsageCount={getUsageCount}
+          getUsageResumeNames={getUsageResumeNames}
+        />
 
         <PreviewRail
           open={previewOpen}
