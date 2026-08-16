@@ -2,6 +2,8 @@
 
 import { ChevronLeft, ChevronRight, FileText } from "lucide-react";
 import { ResumePDFPreview } from "@/features/resume-builder/components/ResumePDFPreview";
+import { PdfDownloadButton } from "@/features/resume-builder/components/PdfDownloadButton";
+
 import type { BlockOnResume, Resume, ResumeSection } from "@/types";
 
 interface PreviewContentProps {
@@ -39,9 +41,10 @@ interface Props {
   isPending: boolean;
   slots: BlockOnResume[];
   sections: ResumeSection[];
+  resumeId: string;
 }
 
-export function PreviewRail({ open, onOpen, onClose, resume, isPending, slots, sections }: Props) {
+export function PreviewRail({ open, onOpen, onClose, resume, isPending, slots, sections, resumeId }: Props) {
   if (!open) {
     return (
       <aside className="shrink-0 border-l border-hairline bg-panel flex flex-col transition-[width] duration-200 w-12">
@@ -65,17 +68,18 @@ export function PreviewRail({ open, onOpen, onClose, resume, isPending, slots, s
           <h2 className="font-mono text-[11px] font-medium text-muted-foreground uppercase tracking-wide">
             Preview
           </h2>
-          <button
-            onClick={onClose}
-            className="text-muted-foreground hover:text-foreground transition-colors"
-            aria-label="Collapse preview"
-          >
-            <ChevronRight className="h-4 w-4" />
-          </button>
+          <div className="flex items-center gap-2">
+            <PdfDownloadButton resumeId={resumeId} />
+            <button
+              onClick={onClose}
+              className="text-muted-foreground hover:text-foreground transition-colors"
+              aria-label="Collapse preview"
+            >
+              <ChevronRight className="h-4 w-4" />
+            </button>
+          </div>
         </div>
-        <div className="flex-1 min-h-0 overflow-hidden">
-          <PreviewContent resume={resume} isPending={isPending} slots={slots} sections={sections} />
-        </div>
+        <PreviewContent resume={resume} isPending={isPending} slots={slots} sections={sections} />
       </div>
     </aside>
   );

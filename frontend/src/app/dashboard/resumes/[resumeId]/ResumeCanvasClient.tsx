@@ -154,6 +154,7 @@ export function ResumeCanvasClient({ resumeId }: Props) {
           onOpen={() => setPreviewOpen(true)}
           onClose={() => setPreviewOpen(false)}
           resume={resumeQuery.data}
+          resumeId={resumeId}
           isPending={resumeQuery.isPending}
           slots={attachedSlots}
           sections={sections}

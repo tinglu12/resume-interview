@@ -61,5 +61,8 @@
       "Bash(sed 's/id=\"PANELROOT\" style=\"flex:1 1 0%;min-height:0;/id=\"PANELROOT\" style=\"flex:1 1 0%;min-height:0;min-width:0;/' probe5.html)",
       "Bash(~/.cache/ms-playwright/chromium_headless_shell-1208/chrome-headless-shell-linux64/chrome-headless-shell --no-sandbox --disable-gpu --window-size=1600,900 --virtual-time-budget=1500 --dump-dom file://__TRACKED_VAR__/probe6.html)"
     ]
-  }
+  },
+  "enabledMcpjsonServers": [
+    "shadcn"
+  ]
 }
