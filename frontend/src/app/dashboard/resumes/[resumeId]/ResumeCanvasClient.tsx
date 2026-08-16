@@ -10,7 +10,8 @@ import { useCanvasDnd } from "@/features/resume-builder/hooks/useCanvasDnd";
 import { useBlockUsage } from "@/features/resume-builder/hooks/useBlockUsage";
 import { ResumeCanvas } from "@/features/resume-builder/components/ResumeCanvas";
 import { getResume } from "@/features/resume-display-upload/api";
-import { BlockLibraryRail } from "./BlockLibraryRail";
+import { BlockLibraryPane } from "./BlockLibraryPane";
+import { ResumeCompositionPane } from "./ResumeCompositionPane";
 import { PreviewRail } from "./PreviewRail";
 import { DragOverlayContent } from "./DragOverlayContent";
 import type { BlockType, Resume } from "@/types";
@@ -111,38 +112,43 @@ export function ResumeCanvasClient({ resumeId }: Props) {
       onDragCancel={handleDragCancel}
     >
       <div className="flex flex-1 min-h-0 overflow-hidden">
-        <BlockLibraryRail
-          open={libraryOpen}
-          onOpen={() => setLibraryOpen(true)}
-          onClose={() => setLibraryOpen(false)}
-          blocks={blocks}
-          loading={blocksLoading}
-          error={blocksError}
-          attachedSlots={attachedSlots}
-          activeSectionType={activeSectionType}
-          onAttach={activeSectionId ? handleAttach : undefined}
-          onClearActiveSection={() => setActiveSectionId(null)}
-          getUsageCount={getUsageCount}
-        />
+        {/* Left side: block library stacked over the resume composition */}
+        <div className="flex-1 min-w-0 min-h-0 flex flex-col overflow-hidden">
+          <BlockLibraryPane
+            open={libraryOpen}
+            onOpen={() => setLibraryOpen(true)}
+            onClose={() => setLibraryOpen(false)}
+            blocks={blocks}
+            loading={blocksLoading}
+            error={blocksError}
+            attachedSlots={attachedSlots}
+            activeSectionType={activeSectionType}
+            onAttach={activeSectionId ? handleAttach : undefined}
+            onClearActiveSection={() => setActiveSectionId(null)}
+            getUsageCount={getUsageCount}
+          />
 
-        {/* Middle: Canvas — always visible, expands to fill freed rail space */}
-        <ResumeCanvas
-          resumeId={resumeId}
-          sections={sections}
-          loading={sectionsLoading}
-          error={sectionsError}
-          activeSectionId={activeSectionId}
-          onActivateSection={handleActivateSection}
-          onDetachBlock={handleDetachBlock}
-          onDeleteSection={handleDeleteSection}
-          onRenameSection={handleRenameSection}
-          onAddSection={handleAddSection}
-          onBlockSaved={handleBlockSaved}
-          isSaving={isUpdating}
-          getUsageCount={getUsageCount}
-          getUsageResumeNames={getUsageResumeNames}
-        />
+          <ResumeCompositionPane>
+            <ResumeCanvas
+              resumeId={resumeId}
+              sections={sections}
+              loading={sectionsLoading}
+              error={sectionsError}
+              activeSectionId={activeSectionId}
+              onActivateSection={handleActivateSection}
+              onDetachBlock={handleDetachBlock}
+              onDeleteSection={handleDeleteSection}
+              onRenameSection={handleRenameSection}
+              onAddSection={handleAddSection}
+              onBlockSaved={handleBlockSaved}
+              isSaving={isUpdating}
+              getUsageCount={getUsageCount}
+              getUsageResumeNames={getUsageResumeNames}
+            />
+          </ResumeCompositionPane>
+        </div>
 
+        {/* Right side: live PDF preview */}
         <PreviewRail
           open={previewOpen}
           onOpen={() => setPreviewOpen(true)}
