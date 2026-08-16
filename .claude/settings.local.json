@@ -46,7 +46,11 @@
       "Bash(curl -s -o /dev/null -w \"%{http_code}\\\\n\" http://localhost:3000/)",
       "Bash(curl -sv http://localhost:3000/dashboard)",
       "Bash(xargs -I{} sh -c 'echo \"=== {} ===\"; grep -nE \"^\\(function|export function\\) [A-Z]\" {}')",
-      "Bash(git stash *)"
+      "Bash(git stash *)",
+      "Read(//home/tingl/.cache/ms-playwright/chromium_headless_shell-1208/**)",
+      "Bash(~/.cache/ms-playwright/chromium_headless_shell-1208/chrome-headless-shell-linux64/chrome-headless-shell --no-sandbox --disable-gpu --window-size=1440,900 --virtual-time-budget=2000 --dump-dom file://__TRACKED_VAR__/probe.html)",
+      "Bash(sed -i 's| w-80 h-full min-h-0 overflow-hidden\"| w-80\"|; s|duration-200 w-12 h-full min-h-0 overflow-hidden\"|duration-200 w-12\"|' \"src/app/dashboard/resumes/[resumeId]/BlockLibraryRail.tsx\")",
+      "Bash(sed -i 's|duration-200 w-12 h-full min-h-0 overflow-hidden\"|duration-200 w-12\"|; s|duration-200 w-\\\\[440px\\\\] h-full min-h-0 overflow-hidden\"|duration-200 w-[440px]\"|' \"src/app/dashboard/resumes/[resumeId]/PreviewRail.tsx\")"
     ]
   }
 }

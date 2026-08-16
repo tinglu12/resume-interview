@@ -4,17 +4,15 @@ import { useState } from "react";
 import { useAuth } from "@clerk/nextjs";
 import { useQuery } from "@tanstack/react-query";
 import { DndContext, DragOverlay } from "@dnd-kit/core";
-import { ChevronLeft, ChevronRight, Library, FileText } from "lucide-react";
-import { cn } from "@/lib/utils";
 import { useBlocks } from "@/features/resume-builder/hooks/useBlocks";
 import { useResumeSections } from "@/features/resume-builder/hooks/useResumeSections";
 import { useCanvasDnd } from "@/features/resume-builder/hooks/useCanvasDnd";
 import { useBlockUsage } from "@/features/resume-builder/hooks/useBlockUsage";
-import { BlockLibraryPanel } from "@/features/resume-builder/components/BlockLibraryPanel";
 import { ResumeCanvas } from "@/features/resume-builder/components/ResumeCanvas";
-import { ResumePDFPreview } from "@/features/resume-builder/components/ResumePDFPreview";
-import { getEdgeColor, isDashedEdge } from "@/features/resume-builder/lib/blockTypeEdge";
 import { getResume } from "@/features/resume-display-upload/api";
+import { BlockLibraryRail } from "./BlockLibraryRail";
+import { PreviewRail } from "./PreviewRail";
+import { DragOverlayContent } from "./DragOverlayContent";
 import type { BlockType, Resume } from "@/types";
 
 interface Props {
@@ -112,141 +110,60 @@ export function ResumeCanvasClient({ resumeId }: Props) {
       onDragEnd={handleDragEnd}
       onDragCancel={handleDragCancel}
     >
-    <div className="flex flex-1 min-h-0 overflow-hidden">
-      {/* Left: Block library — collapsible rail */}
-      <aside
-        className={cn(
-          "shrink-0 border-r border-hairline bg-panel flex flex-col transition-[width] duration-200",
-          libraryOpen ? "w-80" : "w-12"
-        )}
-      >
-        {libraryOpen ? (
-          <div className="flex-1 min-h-0 flex flex-col p-4 overflow-hidden">
-            <div className="shrink-0 flex items-center justify-between mb-3">
-              <h2 className="font-mono text-[11px] font-medium text-muted-foreground uppercase tracking-wide">
-                Block library
-              </h2>
-              <button
-                onClick={() => setLibraryOpen(false)}
-                className="text-muted-foreground hover:text-foreground transition-colors"
-                aria-label="Collapse block library"
-              >
-                <ChevronLeft className="h-4 w-4" />
-              </button>
-            </div>
-            <BlockLibraryPanel
-              blocks={blocks}
-              loading={blocksLoading}
-              error={blocksError}
-              attachedSlots={attachedSlots}
-              activeSectionType={activeSectionType}
-              onBlockClick={() => {}}
-              onAddToResume={activeSectionId ? handleAttach : undefined}
-              onClearActiveSection={() => setActiveSectionId(null)}
+      <div className="flex flex-1 min-h-0 overflow-hidden">
+        <BlockLibraryRail
+          open={libraryOpen}
+          onOpen={() => setLibraryOpen(true)}
+          onClose={() => setLibraryOpen(false)}
+          blocks={blocks}
+          loading={blocksLoading}
+          error={blocksError}
+          attachedSlots={attachedSlots}
+          activeSectionType={activeSectionType}
+          onAttach={activeSectionId ? handleAttach : undefined}
+          onClearActiveSection={() => setActiveSectionId(null)}
+          getUsageCount={getUsageCount}
+        />
+
+        {/* Middle: Canvas — always visible, expands to fill freed rail space */}
+        <section className="flex-1 min-w-0 min-h-0 overflow-y-auto p-6">
+          <div className="max-w-2xl mx-auto">
+            <h2 className="font-mono text-[11px] font-medium mb-4 text-muted-foreground uppercase tracking-wide">
+              Resume
+            </h2>
+            <ResumeCanvas
+              resumeId={resumeId}
+              sections={sections}
+              loading={sectionsLoading}
+              error={sectionsError}
+              activeSectionId={activeSectionId}
+              onActivateSection={handleActivateSection}
+              onDetachBlock={handleDetachBlock}
+              onDeleteSection={handleDeleteSection}
+              onRenameSection={handleRenameSection}
+              onAddSection={handleAddSection}
+              onBlockSaved={handleBlockSaved}
+              isSaving={isUpdating}
               getUsageCount={getUsageCount}
+              getUsageResumeNames={getUsageResumeNames}
             />
           </div>
-        ) : (
-          <button
-            onClick={() => setLibraryOpen(true)}
-            className="flex-1 flex flex-col items-center gap-2 py-4 text-muted-foreground hover:text-foreground transition-colors"
-            aria-label="Expand block library"
-          >
-            <ChevronRight className="h-4 w-4" />
-            <Library className="h-4 w-4" />
-            <span className="text-xs [writing-mode:vertical-rl] tracking-wide">Library</span>
-          </button>
-        )}
-      </aside>
+        </section>
 
-      {/* Middle: Canvas — always visible, expands to fill freed rail space */}
-      <section className="flex-1 min-w-0 min-h-0 overflow-y-auto p-6">
-        <div className="max-w-2xl mx-auto">
-          <h2 className="font-mono text-[11px] font-medium mb-4 text-muted-foreground uppercase tracking-wide">
-            Resume
-          </h2>
-          <ResumeCanvas
-            resumeId={resumeId}
-            sections={sections}
-            loading={sectionsLoading}
-            error={sectionsError}
-            activeSectionId={activeSectionId}
-            onActivateSection={handleActivateSection}
-            onDetachBlock={handleDetachBlock}
-            onDeleteSection={handleDeleteSection}
-            onRenameSection={handleRenameSection}
-            onAddSection={handleAddSection}
-            onBlockSaved={handleBlockSaved}
-            isSaving={isUpdating}
-            getUsageCount={getUsageCount}
-            getUsageResumeNames={getUsageResumeNames}
-          />
-        </div>
-      </section>
+        <PreviewRail
+          open={previewOpen}
+          onOpen={() => setPreviewOpen(true)}
+          onClose={() => setPreviewOpen(false)}
+          resume={resumeQuery.data}
+          isPending={resumeQuery.isPending}
+          slots={attachedSlots}
+          sections={sections}
+        />
+      </div>
 
-      {/* Right: Live PDF preview — collapsible rail */}
-      <aside
-        className={cn(
-          "shrink-0 border-l border-hairline bg-panel flex flex-col transition-[width] duration-200",
-          previewOpen ? "w-[440px]" : "w-12"
-        )}
-      >
-        {previewOpen ? (
-          <div className="flex-1 min-h-0 flex flex-col overflow-hidden">
-            <div className="shrink-0 flex items-center justify-between px-4 py-3 border-b border-hairline">
-              <h2 className="font-mono text-[11px] font-medium text-muted-foreground uppercase tracking-wide">
-                Preview
-              </h2>
-              <button
-                onClick={() => setPreviewOpen(false)}
-                className="text-muted-foreground hover:text-foreground transition-colors"
-                aria-label="Collapse preview"
-              >
-                <ChevronRight className="h-4 w-4" />
-              </button>
-            </div>
-            <div className="flex-1 min-h-0 overflow-hidden">
-              {resumeQuery.data ? (
-                <ResumePDFPreview
-                  resume={resumeQuery.data}
-                  slots={attachedSlots}
-                  sections={sections}
-                />
-              ) : (
-                <div className="flex items-center justify-center h-full text-sm text-muted-foreground">
-                  {resumeQuery.isPending ? "Loading preview…" : "Could not load resume"}
-                </div>
-              )}
-            </div>
-          </div>
-        ) : (
-          <button
-            onClick={() => setPreviewOpen(true)}
-            className="flex-1 flex flex-col items-center gap-2 py-4 text-muted-foreground hover:text-foreground transition-colors"
-            aria-label="Expand preview"
-          >
-            <ChevronLeft className="h-4 w-4" />
-            <FileText className="h-4 w-4" />
-            <span className="text-xs [writing-mode:vertical-rl] tracking-wide">Preview</span>
-          </button>
-        )}
-      </aside>
-    </div>
-
-    <DragOverlay>
-      {activeBlock && (
-        <div
-          className="flex items-center gap-2 rounded-lg border bg-card px-3 py-2 shadow-lg pl-2"
-          style={{
-            borderLeft: isDashedEdge(activeBlock.block_type)
-              ? `2px dashed ${getEdgeColor(activeBlock.block_type)}`
-              : `3px solid ${getEdgeColor(activeBlock.block_type)}`,
-          }}
-        >
-          <span className="text-sm font-medium truncate max-w-[220px]">{activeBlock.title}</span>
-        </div>
-      )}
-    </DragOverlay>
+      <DragOverlay>
+        <DragOverlayContent block={activeBlock} />
+      </DragOverlay>
     </DndContext>
   );
 }
