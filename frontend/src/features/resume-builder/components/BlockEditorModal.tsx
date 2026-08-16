@@ -42,7 +42,7 @@ function BlockEditorModalBody({
 
   return (
     <>
-      <div className="px-6 pt-6 pb-0">
+      <div className="pl-6 pr-12 pt-6 pb-0">
         <div className="flex items-start justify-between gap-3">
           <div>
             <div className="font-mono text-[9.5px] tracking-[0.06em] uppercase text-accent-teal mb-1.5">
@@ -138,7 +138,7 @@ export function BlockEditorModal({
 }: Props) {
   return (
     <Dialog open={!!block} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="top-16 translate-y-0 max-w-[640px] p-0 gap-0 overflow-hidden">
+      <DialogContent className="p-0 gap-0 max-w-3xl sm:max-w-3xl max-h-[85vh] overflow-y-auto">
         {block && (
           <BlockEditorModalBody
             key={block.id}
