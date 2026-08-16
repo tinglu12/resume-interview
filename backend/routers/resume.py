@@ -18,12 +18,13 @@ async def create_resume(
     db: AsyncSession = Depends(get_db),
 ) -> ResumeOut:
     resume_bytes = await resume.read()
-    return await ResumeService(db).upload_resume(
+    created = await ResumeService(db).upload_resume(
         user_id=user_id,
         filename=resume.filename,
         resume_bytes=resume_bytes,
         content_type=resume.content_type,
     )
+    return ResumeOut.model_validate(created)
 
 
 @router.get("/{resume_id}", response_model=ResumeOut)
@@ -32,7 +33,8 @@ async def get_resume(
     user_id: str = Depends(verify_clerk_token),
     db: AsyncSession = Depends(get_db),
 ) -> ResumeOut:
-    return await ResumeService(db).get_resume(resume_id, user_id)
+    resume = await ResumeService(db).get_resume(resume_id, user_id)
+    return ResumeOut.model_validate(resume)
 
 
 @router.get("", response_model=list[ResumeOut])
@@ -40,7 +42,8 @@ async def list_resumes(
     user_id: str = Depends(verify_clerk_token),
     db: AsyncSession = Depends(get_db),
 ) -> list[ResumeOut]:
-    return await ResumeService(db).list_resumes(user_id)
+    resumes = await ResumeService(db).list_resumes(user_id)
+    return [ResumeOut.model_validate(r) for r in resumes]
 
 
 @router.delete("/{resume_id}", status_code=status.HTTP_204_NO_CONTENT)

@@ -1,30 +1,13 @@
 import { apiClient } from "@/lib/api-client";
 import type {
   BlockOnResume,
-  ParsedBlockPreview,
   Resume,
   ResumeBlock,
+  ResumeSection,
 } from "@/types";
 
-// ── Resume CRUD ───────────────────────────────────────────────────────────────
-
-export async function listResumes(token: string): Promise<Resume[]> {
-  return apiClient.get<Resume[]>("/resumes", token);
-}
-
-export async function uploadResume(token: string, file: File): Promise<Resume> {
-  const form = new FormData();
-  form.append("resume", file);
-  return apiClient.postForm<Resume>("/resumes", token, form);
-}
-
-export async function getResume(id: string, token: string): Promise<Resume> {
-  return apiClient.get<Resume>(`/resumes/${id}`, token);
-}
-
-export async function deleteResume(id: string, token: string): Promise<void> {
-  return apiClient.delete(`/resumes/${id}`, token);
-}
+// ── Builder resume creation ───────────────────────────────────────────────────
+// Listing, upload, delete and the AI parse flow live in @/features/resume-display-upload/api
 
 export async function createAssembledResume(
   token: string,
@@ -71,34 +54,6 @@ export async function deleteBlock(
   );
 }
 
-// ── AI parse flow ─────────────────────────────────────────────────────────────
-
-export async function parseResume(
-  token: string,
-  resumeId: string
-): Promise<{ blocks: ParsedBlockPreview[] }> {
-  return apiClient.post<{ blocks: ParsedBlockPreview[] }>(
-    "/resume-blocks/parse",
-    token,
-    { resume_id: resumeId }
-  );
-}
-
-export async function saveParsedBlocks(
-  token: string,
-  data: {
-    resume_id: string;
-    display_name: string;
-    blocks: ParsedBlockPreview[];
-  }
-): Promise<{ blocks: ResumeBlock[]; assembled_resume_id: string }> {
-  return apiClient.post<{ blocks: ResumeBlock[]; assembled_resume_id: string }>(
-    "/resume-blocks/save-parsed",
-    token,
-    data
-  );
-}
-
 // ── Assembly ──────────────────────────────────────────────────────────────────
 
 export async function getResumeBlocks(
@@ -136,4 +91,93 @@ export async function reorderBlocks(
   return apiClient.patch<void>(`/resumes/${resumeId}/blocks/reorder`, token, {
     blocks,
   }) as Promise<void>;
+}
+
+// ── Sections ──────────────────────────────────────────────────────────────────
+
+export async function getResumeSections(
+  resumeId: string,
+  token: string
+): Promise<ResumeSection[]> {
+  return apiClient.get<ResumeSection[]>(`/resumes/${resumeId}/sections`, token);
+}
+
+export async function createResumeSection(
+  resumeId: string,
+  token: string,
+  data: { section_type: string; display_name: string; position: number }
+): Promise<ResumeSection> {
+  return apiClient.post<ResumeSection>(`/resumes/${resumeId}/sections`, token, data);
+}
+
+export async function updateResumeSection(
+  resumeId: string,
+  sectionId: string,
+  token: string,
+  data: { display_name?: string; position?: number }
+): Promise<ResumeSection> {
+  return apiClient.patch<ResumeSection>(
+    `/resumes/${resumeId}/sections/${sectionId}`,
+    token,
+    data
+  );
+}
+
+export async function deleteResumeSection(
+  resumeId: string,
+  sectionId: string,
+  token: string
+): Promise<void> {
+  return apiClient.delete(`/resumes/${resumeId}/sections/${sectionId}`, token);
+}
+
+export async function reorderSections(
+  resumeId: string,
+  token: string,
+  sections: Array<{ section_id: string; position: number }>
+): Promise<void> {
+  return apiClient.patch<void>(
+    `/resumes/${resumeId}/sections/reorder`,
+    token,
+    { sections }
+  ) as Promise<void>;
+}
+
+export async function attachBlockToSection(
+  resumeId: string,
+  sectionId: string,
+  token: string,
+  blockId: string,
+  position: number
+): Promise<ResumeSection> {
+  return apiClient.post<ResumeSection>(
+    `/resumes/${resumeId}/sections/${sectionId}/blocks`,
+    token,
+    { block_id: blockId, position }
+  );
+}
+
+export async function detachBlockFromSection(
+  resumeId: string,
+  sectionId: string,
+  blockId: string,
+  token: string
+): Promise<void> {
+  return apiClient.delete(
+    `/resumes/${resumeId}/sections/${sectionId}/blocks/${blockId}`,
+    token
+  );
+}
+
+export async function reorderSectionBlocks(
+  resumeId: string,
+  sectionId: string,
+  token: string,
+  blocks: Array<{ block_id: string; position: number }>
+): Promise<void> {
+  return apiClient.patch<void>(
+    `/resumes/${resumeId}/sections/${sectionId}/blocks/reorder`,
+    token,
+    { blocks }
+  ) as Promise<void>;
 }

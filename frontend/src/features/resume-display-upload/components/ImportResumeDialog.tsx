@@ -1,8 +1,6 @@
 "use client";
 
 import { useRef, useState } from "react";
-import { useAuth } from "@clerk/nextjs";
-import { useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import {
@@ -13,7 +11,7 @@ import {
 } from "@/components/ui/dialog";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Skeleton } from "@/components/ui/skeleton";
-import { parseResume, uploadResume } from "../api";
+import { useResumeImport } from "../hook/useResumeImport";
 import type { ParsedBlockPreview, Resume } from "@/types";
 
 type Tab = "upload" | "existing";
@@ -33,57 +31,39 @@ export function ImportResumeDialog({
   onParsed,
   onCancel,
 }: Props) {
-  const { getToken } = useAuth();
-  const qc = useQueryClient();
   const fileRef = useRef<HTMLInputElement>(null);
+  const { uploadAndParse, parseExisting, phase, isImporting, error, reset: resetImport } =
+    useResumeImport();
 
   const [tab, setTab] = useState<Tab>("upload");
   const [file, setFile] = useState<File | null>(null);
-  const [busy, setBusy] = useState(false);
-  const [busyLabel, setBusyLabel] = useState("");
-  const [error, setError] = useState<string | null>(null);
+
+  const busy = isImporting;
+  const busyLabel = phase === "uploading" ? "Uploading PDF…" : "Parsing resume with AI…";
 
   function reset() {
     setFile(null);
-    setError(null);
-    setBusy(false);
+    resetImport();
   }
 
   async function handleUploadAndParse() {
     if (!file) return;
-    setError(null);
-    setBusy(true);
     try {
-      const token = await getToken();
-      if (!token) throw new Error("Not authenticated");
-
-      setBusyLabel("Uploading PDF…");
-      const uploaded = await uploadResume(token, file);
-      qc.invalidateQueries({ queryKey: ["resumes"] });
-
-      setBusyLabel("Parsing resume with AI…");
-      const result = await parseResume(token, uploaded.id);
-      onParsed(uploaded.id, result.blocks);
+      const result = await uploadAndParse(file);
+      onParsed(result.resumeId, result.blocks);
       reset();
-    } catch (e) {
-      setError(e instanceof Error ? e.message : "Upload failed");
-      setBusy(false);
+    } catch {
+      // surfaced via `error` from the hook
     }
   }
 
   async function handleSelectExisting(resumeId: string) {
-    setError(null);
-    setBusy(true);
-    setBusyLabel("Parsing resume with AI…");
     try {
-      const token = await getToken();
-      if (!token) throw new Error("Not authenticated");
-      const result = await parseResume(token, resumeId);
-      onParsed(resumeId, result.blocks);
+      const result = await parseExisting(resumeId);
+      onParsed(result.resumeId, result.blocks);
       reset();
-    } catch (e) {
-      setError(e instanceof Error ? e.message : "Parsing failed");
-      setBusy(false);
+    } catch {
+      // surfaced via `error` from the hook
     }
   }
 
@@ -162,7 +142,7 @@ export function ImportResumeDialog({
                   className="hidden"
                   onChange={(e) => {
                     setFile(e.target.files?.[0] ?? null);
-                    setError(null);
+                    resetImport();
                   }}
                 />
                 <Button onClick={handleUploadAndParse} disabled={!file}>

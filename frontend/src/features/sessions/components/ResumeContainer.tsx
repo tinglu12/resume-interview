@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { ResumeViewer } from "./ResumeViewer";
-import type { Job, QuestionItem } from "@/types";
+import type { Job, QuestionItem } from "@/features/jobs/types";
 
 interface Props {
   job: Job;

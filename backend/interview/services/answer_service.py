@@ -2,12 +2,12 @@ import uuid
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from models import Answer
-from repositories import AnswerRepository, SessionRepository
+from interview.models import Answer
+from interview.repositories import AnswerRepository, SessionRepository
+from interview.services.transcription import TranscriptionService
 from services.ai import AiService
 from services.errors import ServiceError
 from services.storage import StorageService
-from services.transcription import TranscriptionService
 
 
 class AnswerService:

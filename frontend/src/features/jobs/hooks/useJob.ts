@@ -3,7 +3,7 @@
 import { useAuth } from "@clerk/nextjs";
 import { useQuery } from "@tanstack/react-query";
 import { getJob } from "../api";
-import type { Job } from "@/types";
+import type { Job } from "@/features/jobs/types";
 
 export function useJob(id: string) {
   const { getToken } = useAuth();

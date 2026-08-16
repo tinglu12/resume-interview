@@ -3,7 +3,7 @@
 import { useAuth } from "@clerk/nextjs";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { getSession } from "../api";
-import type { Answer, SessionWithAnswers } from "@/types";
+import type { Answer, SessionWithAnswers } from "@/features/sessions/types";
 
 export function useSession(sessionId: string) {
   const { getToken } = useAuth();

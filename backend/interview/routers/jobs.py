@@ -6,8 +6,9 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from auth import verify_clerk_token
 from database import get_db
-from schemas import JobOut, JobSummary
-from services import JobService, ServiceError
+from interview.schemas import JobOut, JobSummary
+from interview.services import JobService
+from services.errors import ServiceError
 
 router = APIRouter(prefix="/jobs", tags=["jobs"])
 

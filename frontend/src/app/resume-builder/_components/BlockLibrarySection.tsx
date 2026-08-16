@@ -1,15 +1,19 @@
+"use client";
+
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { BlockLibraryPanel } from "@/features/resume-builder/components/BlockLibraryPanel";
+import { BlockEditorModal } from "@/features/resume-builder/components/BlockEditorModal";
 import { useBlocks } from "@/features/resume-builder/hooks/useBlocks";
-import { ResumeBlock } from "@/types";
+import { useBlockUsage } from "@/features/resume-builder/hooks/useBlockUsage";
+import type { ResumeBlock } from "@/types";
 
-interface Props {
-  onBlockClick: (block: ResumeBlock) => void;
-}
+export function BlockLibrarySection() {
+  const { blocks, loading: blocksLoading, error: blocksError, updateBlock, isUpdating } = useBlocks();
+  const { getUsage } = useBlockUsage();
+  const [editingBlock, setEditingBlock] = useState<ResumeBlock | null>(null);
 
-export function BlockLibrarySection({ onBlockClick }: Props) {
-  const { blocks, loading: blocksLoading, error: blocksError } = useBlocks();
   return (
     <section>
       <div className="flex items-center justify-between mb-3">
@@ -22,7 +26,20 @@ export function BlockLibrarySection({ onBlockClick }: Props) {
         blocks={blocks}
         loading={blocksLoading}
         error={blocksError}
-        onBlockClick={onBlockClick}
+        onBlockClick={() => {}}
+        editingBlockId={editingBlock?.id ?? null}
+        onOpenEditor={(block) => setEditingBlock(block)}
+        getUsageCount={(blockId) => getUsage(blockId).count}
+      />
+      <BlockEditorModal
+        block={editingBlock}
+        usageCount={editingBlock ? getUsage(editingBlock.id).count : 1}
+        usageResumeNames={editingBlock ? getUsage(editingBlock.id).resumeNames : []}
+        onClose={() => setEditingBlock(null)}
+        onSave={async (id, data) => {
+          await updateBlock({ id, data });
+        }}
+        isSaving={isUpdating}
       />
     </section>
   );

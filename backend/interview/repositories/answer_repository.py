@@ -1,6 +1,6 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from models import Answer
+from interview.models import Answer
 
 
 class AnswerRepository:

@@ -2,9 +2,9 @@ import uuid
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from models import Job
-from repositories import JobRepository
-from schemas import JobSummary
+from interview.models import Job
+from interview.repositories import JobRepository
+from interview.schemas import JobSummary
 from services.ai import AiService
 from services.errors import ServiceError
 from services.pdf import PdfService

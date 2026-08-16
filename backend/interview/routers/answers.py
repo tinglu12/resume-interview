@@ -5,8 +5,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from auth import verify_clerk_token
 from database import get_db
-from schemas import AnswerOut
-from services import AnswerService
+from interview.schemas import AnswerOut
+from interview.services import AnswerService
 
 router = APIRouter(prefix="/sessions", tags=["answers"])
 

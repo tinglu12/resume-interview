@@ -3,7 +3,8 @@
 import { useState } from "react";
 import { useAuth } from "@clerk/nextjs";
 import { pdf } from "@react-pdf/renderer";
-import { getResume, getResumeBlocks } from "@/features/resume-builder/api";
+import { getResumeBlocks, getResumeSections } from "@/features/resume-builder/api";
+import { getResume } from "@/features/resume-display-upload/api";
 import { ResumePDF } from "./ResumePDF";
 
 interface Props {
@@ -19,11 +20,15 @@ export function PdfDownloadButton({ resumeId }: Props) {
     try {
       const token = await getToken();
       if (!token) throw new Error("Not authenticated");
-      const [resume, slots] = await Promise.all([
+      const [resume, slots, sections] = await Promise.all([
         getResume(resumeId, token),
         getResumeBlocks(resumeId, token),
+        getResumeSections(resumeId, token),
       ]);
-      const blob = await pdf(<ResumePDF resume={resume} slots={slots} />).toBlob();
+      const useSections = resume.resume_type === "builder" && sections.length > 0;
+      const blob = await pdf(
+        <ResumePDF resume={resume} slots={slots} sections={useSections ? sections : undefined} />
+      ).toBlob();
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;

@@ -1,4 +1,4 @@
-import type { Feedback } from "@/types";
+import type { Feedback } from "@/features/sessions/types";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";

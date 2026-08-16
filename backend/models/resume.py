@@ -12,6 +12,7 @@ from database import Base
 
 if TYPE_CHECKING:
     from .resume_block_association import ResumeBlockAssociation
+    from .resume_section import ResumeSection
 
 
 class Resume(Base):
@@ -40,5 +41,13 @@ class Resume(Base):
         "ResumeBlockAssociation",
         back_populates="resume",
         order_by="ResumeBlockAssociation.position",
+        cascade="all, delete-orphan",
+    )
+
+    # Explicit sections (only populated for resume_type="builder")
+    sections: Mapped[list[ResumeSection]] = relationship(
+        "ResumeSection",
+        back_populates="resume",
+        order_by="ResumeSection.position",
         cascade="all, delete-orphan",
     )

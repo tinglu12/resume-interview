@@ -12,6 +12,7 @@ from database import Base
 if TYPE_CHECKING:
     from .resume import Resume
     from .resume_block import ResumeBlock
+    from .resume_section import ResumeSection
 
 
 class ResumeBlockAssociation(Base):
@@ -30,8 +31,15 @@ class ResumeBlockAssociation(Base):
         ForeignKey("resume_blocks.id", ondelete="CASCADE"),
         nullable=False,
     )
+    section_id: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("resume_sections.id", ondelete="CASCADE"),
+        nullable=True,
+        index=True,
+    )
     position: Mapped[int] = mapped_column(Integer, nullable=False)
     title_override: Mapped[str | None] = mapped_column(Text, nullable=True)
 
     resume: Mapped[Resume] = relationship("Resume", back_populates="block_associations")
     block: Mapped[ResumeBlock] = relationship("ResumeBlock", back_populates="associations")
+    section: Mapped[ResumeSection | None] = relationship("ResumeSection", back_populates="block_associations")

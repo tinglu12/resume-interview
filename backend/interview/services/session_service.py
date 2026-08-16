@@ -2,8 +2,8 @@ import uuid
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from models import Session
-from repositories import JobRepository, SessionRepository
+from interview.models import Session
+from interview.repositories import JobRepository, SessionRepository
 from services.errors import ServiceError
 
 

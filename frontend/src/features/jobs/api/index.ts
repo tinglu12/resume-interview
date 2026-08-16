@@ -1,5 +1,6 @@
 import { apiClient } from "@/lib/api-client";
-import type { Job, JobSummary, Session } from "@/types";
+import type { Job, JobSummary } from "@/features/jobs/types";
+import type { Session } from "@/features/sessions/types";
 
 export async function listJobs(token: string): Promise<JobSummary[]> {
   return apiClient.get<JobSummary[]>("/jobs", token);

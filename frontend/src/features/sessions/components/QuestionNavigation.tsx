@@ -1,6 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import type { Job, SessionWithAnswers } from "@/types";
+import type { Job } from "@/features/jobs/types";
+import type { SessionWithAnswers } from "@/features/sessions/types";
 
 interface Props {
   job: Job;

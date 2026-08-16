@@ -1,5 +1,5 @@
 import Link from "next/link";
-import type { JobSummary } from "@/types";
+import type { JobSummary } from "@/features/jobs/types";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 

@@ -1,5 +1,5 @@
 import { apiClient } from "@/lib/api-client";
-import type { Answer, SessionWithAnswers } from "@/types";
+import type { Answer, SessionWithAnswers } from "@/features/sessions/types";
 
 export async function getSession(sessionId: string, token: string): Promise<SessionWithAnswers> {
   return apiClient.get<SessionWithAnswers>(`/sessions/${sessionId}`, token);

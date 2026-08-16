@@ -1,0 +1,33 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python3 -c ' *)",
+      "Bash(.venv/bin/python3 *)",
+      "Bash(npm install *)",
+      "Bash(npx shadcn@latest add sheet --yes)",
+      "Bash(npx shadcn@latest add sheet)",
+      "Bash(npx tsc *)",
+      "Bash(find *)",
+      "Bash(python3 -c \"import json,sys; d=json.load\\(sys.stdin\\); print\\(d[0]['text']\\)\")",
+      "Bash(grep -n \"^# Engineering Tickets\\\\|^## Notes for the caller\\\\|^---$\" /tmp/claude-1000/-home-tingl-projects-resume-interview/da6cfc89-7bc3-4117-aec2-23fe97131e86/scratchpad/prd_body.md)",
+      "mcp__claude_ai_Notion__notion-create-pages",
+      "mcp__claude_ai_Notion__notion-create-database",
+      "mcp__claude_ai_Figma__whoami",
+      "mcp__claude_ai_Figma__get_figma_skill",
+      "mcp__claude_ai_Figma__create_new_file",
+      "mcp__claude_ai_Figma__use_figma",
+      "mcp__claude_ai_Notion__notion-search",
+      "mcp__claude_ai_Notion__notion-fetch",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\\\\n\" http://localhost:3111/resume-builder)",
+      "Bash(pkill -f \"next dev -p 3111\")",
+      "Bash(npx eslint *)",
+      "Bash(python3 -)",
+      "Bash(sed -i 's#from \"@/features/resume-builder/components/ImportResumeDialog\"#from \"@/features/resume-display-upload/components/ImportResumeDialog\"#; s#from \"@/features/resume-builder/components/ParseReviewModal\"#from \"@/features/resume-display-upload/components/ParseReviewModal\"#; s#from \"@/features/resume-builder/components/DuplicateResumeModal\"#from \"@/features/resume-display-upload/components/DuplicateResumeModal\"#' app/resume-builder/ResumeBuilderDashboardClient.tsx)",
+      "Bash(sed -i 's#import { listResumes } from \"@/features/resume-builder/api\";#import { listResumes } from \"@/features/resume-display-upload/api\";#' features/jobs/components/JobForm.tsx)",
+      "Bash(sed -i 's#import { getResume, getResumeBlocks, getResumeSections } from \"@/features/resume-builder/api\";#import { getResumeBlocks, getResumeSections } from \"@/features/resume-builder/api\";\\\\nimport { getResume } from \"@/features/resume-display-upload/api\";#' features/resume-builder/components/PdfDownloadButton.tsx)",
+      "Bash(sed -i 's#import { getResume } from \"@/features/resume-builder/api\";#import { getResume } from \"@/features/resume-display-upload/api\";#' app/resume-builder/resumes/\\\\[resumeId\\\\]/ResumeCanvasClient.tsx)",
+      "Bash(chmod +x run.sh)",
+      "Bash(bash -n run.sh)"
+    ]
+  }
+}

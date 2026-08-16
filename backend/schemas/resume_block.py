@@ -161,6 +161,54 @@ class BlockOnResumeOut(BaseModel):
     association_id: uuid.UUID
     position: int
     title_override: str | None
+    section_id: uuid.UUID | None = None
     block: ResumeBlockOut
 
     model_config = {"from_attributes": True}
+
+
+# ── Section schemas ───────────────────────────────────────────────────────────
+
+class ResumeSectionCreate(BaseModel):
+    section_type: str
+    display_name: str
+    position: int
+
+
+class ResumeSectionUpdate(BaseModel):
+    display_name: str | None = None
+    position: int | None = None
+
+
+class ResumeSectionOut(BaseModel):
+    id: uuid.UUID
+    resume_id: uuid.UUID
+    section_type: str
+    display_name: str
+    position: int
+    blocks: list[BlockOnResumeOut] = []
+
+    model_config = {"from_attributes": True}
+
+
+class AttachBlockToSectionRequest(BaseModel):
+    block_id: uuid.UUID
+    position: int
+
+
+class ReorderSectionsItem(BaseModel):
+    section_id: uuid.UUID
+    position: int
+
+
+class ReorderSectionsRequest(BaseModel):
+    sections: list[ReorderSectionsItem]
+
+
+class ReorderSectionBlocksItem(BaseModel):
+    block_id: uuid.UUID
+    position: int
+
+
+class ReorderSectionBlocksRequest(BaseModel):
+    blocks: list[ReorderSectionBlocksItem]

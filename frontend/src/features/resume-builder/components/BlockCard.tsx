@@ -1,7 +1,9 @@
 "use client";
 
-import { Badge } from "@/components/ui/badge";
+import { useDraggable } from "@dnd-kit/core";
+import { CSS } from "@dnd-kit/utilities";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { getEdgeColor, getEdgeStripeBackground, isDashedEdge } from "@/features/resume-builder/lib/blockTypeEdge";
 import type {
   BlockType,
   PersonalInfoContent,
@@ -22,16 +24,6 @@ const BLOCK_TYPE_LABELS: Record<BlockType, string> = {
   summary: "Summary",
   custom: "Custom",
   personal_info: "Personal Info",
-};
-
-const BLOCK_TYPE_COLORS: Record<BlockType, string> = {
-  work_experience: "bg-blue-100 text-blue-800",
-  project: "bg-purple-100 text-purple-800",
-  education: "bg-green-100 text-green-800",
-  skills: "bg-yellow-100 text-yellow-800",
-  summary: "bg-gray-100 text-gray-800",
-  custom: "bg-orange-100 text-orange-800",
-  personal_info: "bg-rose-100 text-rose-800",
 };
 
 function getExcerpt(block: ResumeBlock): string {
@@ -70,30 +62,73 @@ interface Props {
   onClick?: () => void;
   onAddToResume?: () => void;
   isAdded?: boolean;
+  /** How many resumes this block is used on. Defaults to 1 (no stripe) until real usage data is passed in. */
+  usageCount?: number;
+  /** Opens the block editor modal. When provided, clicking the card opens the editor instead of firing `onClick`. */
+  onOpenEditor?: () => void;
+  isEditing?: boolean;
 }
 
-export function BlockCard({ block, onClick, onAddToResume, isAdded }: Props) {
-  const colorClass =
-    BLOCK_TYPE_COLORS[block.block_type] ?? "bg-gray-100 text-gray-800";
+export function BlockCard({
+  block,
+  onClick,
+  onAddToResume,
+  isAdded,
+  usageCount = 1,
+  onOpenEditor,
+  isEditing,
+}: Props) {
   const label = BLOCK_TYPE_LABELS[block.block_type] ?? block.block_type;
   const excerpt = getExcerpt(block);
+  const dashed = isDashedEdge(block.block_type);
+  const edgeColor = getEdgeColor(block.block_type);
+  const edgeStripe = getEdgeStripeBackground(block.block_type, usageCount);
+
+  const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
+    id: block.id,
+    data: { type: "library-block", blockId: block.id, blockType: block.block_type },
+  });
+
+  function handleClick() {
+    if (onOpenEditor) {
+      onOpenEditor();
+    } else {
+      onClick?.();
+    }
+  }
 
   return (
     <Card
-      className="cursor-pointer transition-shadow hover:shadow-md"
-      onClick={onClick}
+      ref={setNodeRef}
+      style={{ transform: CSS.Translate.toString(transform), opacity: isDragging ? 0.4 : 1 }}
+      className={`relative overflow-hidden cursor-pointer transition-shadow hover:shadow-md pl-1.5 ${
+        isEditing ? "ring-2 ring-accent-teal" : ""
+      }`}
+      onClick={handleClick}
+      {...attributes}
+      {...listeners}
     >
+      <div
+        className="absolute inset-y-0 left-0 w-2"
+        style={{
+          background: dashed ? "transparent" : edgeStripe,
+          borderLeft: dashed ? `2px dashed ${edgeColor}` : undefined,
+        }}
+      />
       <CardHeader className="pb-2">
         <div className="flex items-start justify-between gap-2">
           <CardTitle className="text-sm font-medium leading-snug">
             {block.title}
           </CardTitle>
-          <span
-            className={`shrink-0 rounded-full px-2 py-0.5 text-xs font-medium ${colorClass}`}
-          >
+          <span className="shrink-0 rounded-full bg-muted px-2 py-0.5 text-xs font-medium text-muted-foreground">
             {label}
           </span>
         </div>
+        {usageCount > 1 && (
+          <div className="font-mono text-[9px] tracking-[0.05em] uppercase text-accent-teal">
+            Used in {usageCount} resumes
+          </div>
+        )}
       </CardHeader>
       {(excerpt || onAddToResume) && (
         <CardContent className="pt-0">

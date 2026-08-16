@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useAuth } from "@clerk/nextjs";
 import { listJobs } from "../api";
-import type { JobSummary } from "@/types";
+import type { JobSummary } from "@/features/jobs/types";
 
 export function useJobs() {
   const { getToken } = useAuth();

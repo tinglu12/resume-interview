@@ -6,6 +6,7 @@ import type {
   PersonalInfoContent,
   ProjectContent,
   Resume,
+  ResumeSection,
   SkillsContent,
   SummaryContent,
   WorkExperienceContent,
@@ -80,18 +81,38 @@ const s = StyleSheet.create({
 interface Props {
   resume: Resume;
   slots: BlockOnResume[];
+  sections?: ResumeSection[];
 }
 
-export function ResumePDF({ resume, slots }: Props) {
-  const hasPersonalInfo = slots.some(
-    (s) => s.block.block_type === "personal_info",
-  );
+export function ResumePDF({ resume, slots, sections }: Props) {
+  if (sections && sections.length > 0) {
+    return (
+      <Document>
+        <Page size="LETTER" style={s.page}>
+          {sections.map((section) => {
+            if (!section.blocks.length) return null;
+            const isPersonalInfo = section.section_type === "personal_info";
+            return (
+              <View key={section.id}>
+                {/* personal_info renders as header, not a labeled section */}
+                {!isPersonalInfo && (
+                  <SectionHeading label={section.display_name} />
+                )}
+                {section.blocks.map((slot) => (
+                  <BlockSectionContent key={slot.block.id} slot={slot} />
+                ))}
+              </View>
+            );
+          })}
+        </Page>
+      </Document>
+    );
+  }
 
+  // Legacy flat rendering for uploaded resumes
   return (
     <Document>
       <Page size="LETTER" style={s.page}>
-        {/* Fallback header when no personal_info block */}
-
         {slots.map((slot, i) => {
           const prevType = i > 0 ? slots[i - 1].block.block_type : null;
           const showHeading = slot.block.block_type !== prevType;
@@ -106,6 +127,34 @@ export function ResumePDF({ resume, slots }: Props) {
       </Page>
     </Document>
   );
+}
+
+function BlockSectionContent({ slot }: { slot: BlockOnResume }) {
+  const { block } = slot;
+  switch (block.block_type) {
+    case "summary":
+      return <SummaryEntry content={block.content as SummaryContent} showHeading={false} />;
+    case "work_experience":
+      return <WorkExperienceEntry content={block.content as WorkExperienceContent} showHeading={false} />;
+    case "project":
+      return (
+        <ProjectEntry
+          title={slot.title_override ?? block.title}
+          content={block.content as ProjectContent}
+          showHeading={false}
+        />
+      );
+    case "education":
+      return <EducationEntry content={block.content as EducationContent} showHeading={false} />;
+    case "skills":
+      return <SkillsEntry content={block.content as SkillsContent} showHeading={false} />;
+    case "custom":
+      return <CustomEntry content={block.content as CustomContent} showHeading={false} />;
+    case "personal_info":
+      return <PersonalInfoHeader content={block.content as PersonalInfoContent} />;
+    default:
+      return null;
+  }
 }
 
 function BlockSection({

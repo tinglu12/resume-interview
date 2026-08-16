@@ -2,7 +2,8 @@
 
 import { useState } from "react";
 import { QuestionCard } from "./QuestionCard";
-import type { Answer, Job, SessionWithAnswers } from "@/types";
+import type { Job } from "@/features/jobs/types";
+import type { Answer, SessionWithAnswers } from "@/features/sessions/types";
 import { Separator } from "@/components/ui/separator";
 import { ProgressionSection } from "./ProgressionSection";
 import { QuestionNavigation } from "./QuestionNavigation";

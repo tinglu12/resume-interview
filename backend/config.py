@@ -22,5 +22,7 @@ class Settings(BaseSettings):
     r2_endpoint: str = ""
     r2_public_url: str = ""
 
+    enable_interview: bool = False
+
 
 settings = Settings()

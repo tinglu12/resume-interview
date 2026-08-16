@@ -1,5 +1,5 @@
 import { Badge } from "@/components/ui/badge";
-import type { Job } from "@/types";
+import type { Job } from "@/features/jobs/types";
 
 interface Props {
   answeredCount: number;
