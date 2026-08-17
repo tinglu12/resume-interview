@@ -1,20 +1,23 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useAuth } from "@clerk/nextjs";
 import { useQuery } from "@tanstack/react-query";
 import { DndContext, DragOverlay } from "@dnd-kit/core";
+import type { PanelImperativeHandle } from "react-resizable-panels";
 import { useBlocks } from "@/features/resume-builder/hooks/useBlocks";
 import { useResumeSections } from "@/features/resume-builder/hooks/useResumeSections";
 import { useCanvasDnd } from "@/features/resume-builder/hooks/useCanvasDnd";
 import { useBlockUsage } from "@/features/resume-builder/hooks/useBlockUsage";
 import { ResumeCanvas } from "@/features/resume-builder/components/ResumeCanvas";
 import { getResume } from "@/features/resume-display-upload/api";
+import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from "@/components/ui/resizable";
 import { BlockLibraryPane } from "./BlockLibraryPane";
-import { ResumeCompositionPane } from "./ResumeCompositionPane";
 import { PreviewRail } from "./PreviewRail";
 import { DragOverlayContent } from "./DragOverlayContent";
 import type { BlockType, Resume } from "@/types";
+
+const COLLAPSED_SIZE = 48;
 
 interface Props {
   resumeId: string;
@@ -25,6 +28,8 @@ export function ResumeCanvasClient({ resumeId }: Props) {
   const [activeSectionId, setActiveSectionId] = useState<string | null>(null);
   const [libraryOpen, setLibraryOpen] = useState(true);
   const [previewOpen, setPreviewOpen] = useState(true);
+  const libraryPanelRef = useRef<PanelImperativeHandle>(null);
+  const previewPanelRef = useRef<PanelImperativeHandle>(null);
 
   const { blocks, loading: blocksLoading, error: blocksError, updateBlock, isUpdating } = useBlocks();
   const {
@@ -64,7 +69,7 @@ export function ResumeCanvasClient({ resumeId }: Props) {
 
   function handleActivateSection(id: string | null) {
     setActiveSectionId(id);
-    if (id !== null && !libraryOpen) setLibraryOpen(true);
+    if (id !== null && !libraryOpen) libraryPanelRef.current?.expand();
   }
 
   async function handleAttach(block: { id: string }) {
@@ -111,55 +116,89 @@ export function ResumeCanvasClient({ resumeId }: Props) {
       onDragEnd={handleDragEnd}
       onDragCancel={handleDragCancel}
     >
-      <div className="flex flex-1 min-h-0 overflow-hidden">
+      <ResizablePanelGroup orientation="horizontal" className="flex-1 min-h-0 overflow-hidden">
         {/* Left side: block library stacked over the resume composition */}
-        <div className="flex-1 min-w-0 min-h-0 flex flex-col overflow-hidden">
-          <BlockLibraryPane
-            open={libraryOpen}
-            onOpen={() => setLibraryOpen(true)}
-            onClose={() => setLibraryOpen(false)}
-            blocks={blocks}
-            loading={blocksLoading}
-            error={blocksError}
-            attachedSlots={attachedSlots}
-            activeSectionType={activeSectionType}
-            onAttach={activeSectionId ? handleAttach : undefined}
-            onClearActiveSection={() => setActiveSectionId(null)}
-            getUsageCount={getUsageCount}
-          />
+        <ResizablePanel
+          id="editor-column"
+          defaultSize="54%"
+          minSize={360}
+          className="flex flex-col min-w-0 min-h-0 overflow-hidden"
+        >
+          <ResizablePanelGroup orientation="vertical" className="flex-1 min-h-0">
+            <ResizablePanel
+              id="block-library"
+              panelRef={libraryPanelRef}
+              collapsible
+              collapsedSize={COLLAPSED_SIZE}
+              defaultSize="38%"
+              minSize={160}
+              onResize={() => setLibraryOpen(!libraryPanelRef.current?.isCollapsed())}
+              className="min-h-0 flex flex-col overflow-hidden"
+            >
+              <BlockLibraryPane
+                open={libraryOpen}
+                onOpen={() => libraryPanelRef.current?.expand()}
+                onClose={() => libraryPanelRef.current?.collapse()}
+                blocks={blocks}
+                loading={blocksLoading}
+                error={blocksError}
+                attachedSlots={attachedSlots}
+                activeSectionType={activeSectionType}
+                onAttach={activeSectionId ? handleAttach : undefined}
+                onClearActiveSection={() => setActiveSectionId(null)}
+                getUsageCount={getUsageCount}
+              />
+            </ResizablePanel>
 
-          <ResumeCompositionPane>
-            <ResumeCanvas
-              resumeId={resumeId}
-              sections={sections}
-              loading={sectionsLoading}
-              error={sectionsError}
-              activeSectionId={activeSectionId}
-              onActivateSection={handleActivateSection}
-              onDetachBlock={handleDetachBlock}
-              onDeleteSection={handleDeleteSection}
-              onRenameSection={handleRenameSection}
-              onAddSection={handleAddSection}
-              onBlockSaved={handleBlockSaved}
-              isSaving={isUpdating}
-              getUsageCount={getUsageCount}
-              getUsageResumeNames={getUsageResumeNames}
-            />
-          </ResumeCompositionPane>
-        </div>
+            <ResizableHandle withHandle />
+
+            <ResizablePanel id="resume-composition" minSize={200} className="min-h-0 flex flex-col overflow-hidden">
+                <ResumeCanvas
+                  resumeId={resumeId}
+                  sections={sections}
+                  loading={sectionsLoading}
+                  error={sectionsError}
+                  activeSectionId={activeSectionId}
+                  onActivateSection={handleActivateSection}
+                  onDetachBlock={handleDetachBlock}
+                  onDeleteSection={handleDeleteSection}
+                  onRenameSection={handleRenameSection}
+                  onAddSection={handleAddSection}
+                  onBlockSaved={handleBlockSaved}
+                  isSaving={isUpdating}
+                  getUsageCount={getUsageCount}
+                  getUsageResumeNames={getUsageResumeNames}
+                />
+            </ResizablePanel>
+          </ResizablePanelGroup>
+        </ResizablePanel>
+
+        <ResizableHandle withHandle />
 
         {/* Right side: live PDF preview */}
-        <PreviewRail
-          open={previewOpen}
-          onOpen={() => setPreviewOpen(true)}
-          onClose={() => setPreviewOpen(false)}
-          resume={resumeQuery.data}
-          resumeId={resumeId}
-          isPending={resumeQuery.isPending}
-          slots={attachedSlots}
-          sections={sections}
-        />
-      </div>
+        <ResizablePanel
+          id="preview"
+          panelRef={previewPanelRef}
+          collapsible
+          collapsedSize={COLLAPSED_SIZE}
+          defaultSize="46%"
+          minSize={380}
+          maxSize={720}
+          onResize={() => setPreviewOpen(!previewPanelRef.current?.isCollapsed())}
+          className="min-h-0 flex flex-col overflow-hidden"
+        >
+          <PreviewRail
+            open={previewOpen}
+            onOpen={() => previewPanelRef.current?.expand()}
+            onClose={() => previewPanelRef.current?.collapse()}
+            resume={resumeQuery.data}
+            resumeId={resumeId}
+            isPending={resumeQuery.isPending}
+            slots={attachedSlots}
+            sections={sections}
+          />
+        </ResizablePanel>
+      </ResizablePanelGroup>
 
       <DragOverlay>
         <DragOverlayContent block={activeBlock} />

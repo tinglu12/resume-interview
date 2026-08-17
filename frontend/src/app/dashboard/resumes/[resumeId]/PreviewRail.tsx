@@ -47,7 +47,7 @@ interface Props {
 export function PreviewRail({ open, onOpen, onClose, resume, isPending, slots, sections, resumeId }: Props) {
   if (!open) {
     return (
-      <aside className="shrink-0 border-l border-hairline bg-panel flex flex-col transition-[width] duration-200 w-12">
+      <aside className="h-full border-l border-hairline bg-panel flex flex-col">
         <button
           onClick={onOpen}
           className="flex-1 flex flex-col items-center gap-2 py-4 text-muted-foreground hover:text-foreground transition-colors"
@@ -62,7 +62,7 @@ export function PreviewRail({ open, onOpen, onClose, resume, isPending, slots, s
   }
 
   return (
-    <aside className="shrink-0 border-l border-hairline bg-panel flex flex-col transition-[width] duration-200 w-[46%] min-w-[380px] max-w-[720px]">
+    <aside className="h-full border-l border-hairline bg-panel flex flex-col">
       <div className="flex-1 min-h-0 flex flex-col overflow-hidden">
         <div className="shrink-0 flex items-center justify-between px-4 py-3 border-b border-hairline">
           <h2 className="font-mono text-[11px] font-medium text-muted-foreground uppercase tracking-wide">

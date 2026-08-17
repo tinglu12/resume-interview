@@ -33,10 +33,10 @@ export function BlockLibraryPane({
 }: Props) {
   if (!open) {
     return (
-      <section className="shrink-0 border-b border-hairline bg-panel">
+      <section className="h-full border-b border-hairline bg-panel">
         <button
           onClick={onOpen}
-          className="w-full flex items-center gap-2 px-5 py-3 text-muted-foreground hover:text-foreground transition-colors"
+          className="w-full h-full flex items-center gap-2 px-5 text-muted-foreground hover:text-foreground transition-colors"
           aria-label="Expand block library"
         >
           <ChevronDown className="h-4 w-4" />
@@ -51,7 +51,7 @@ export function BlockLibraryPane({
   }
 
   return (
-    <section className="shrink-0 basis-[38%] min-h-0 flex flex-col border-b border-hairline bg-panel">
+    <section className="h-full min-h-0 flex flex-col border-b border-hairline bg-panel">
       <div className="shrink-0 flex items-center justify-between px-5 pt-4 pb-2">
         <h2 className="font-mono text-[11px] font-medium text-muted-foreground uppercase tracking-wide">
           Block library
