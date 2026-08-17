@@ -27,7 +27,42 @@
       "Bash(sed -i 's#import { getResume, getResumeBlocks, getResumeSections } from \"@/features/resume-builder/api\";#import { getResumeBlocks, getResumeSections } from \"@/features/resume-builder/api\";\\\\nimport { getResume } from \"@/features/resume-display-upload/api\";#' features/resume-builder/components/PdfDownloadButton.tsx)",
       "Bash(sed -i 's#import { getResume } from \"@/features/resume-builder/api\";#import { getResume } from \"@/features/resume-display-upload/api\";#' app/resume-builder/resumes/\\\\[resumeId\\\\]/ResumeCanvasClient.tsx)",
       "Bash(chmod +x run.sh)",
-      "Bash(bash -n run.sh)"
+      "Bash(bash -n run.sh)",
+      "Bash(.venv/bin/python -c \"import typing_extensions as t;print\\(t.__version__ if hasattr\\(t,'__version__'\\) else 'n/a'\\)\")",
+      "Bash(git mv *)",
+      "Bash(xargs sed -i 's#/resume-builder#/dashboard#g')",
+      "Bash(sed -i -e s/ResumeBuilderNav/DashboardNav/g src/components/layout/DashboardNav.tsx)",
+      "Bash(sed -i -e s/ResumeBuilderDashboardClient/DashboardClient/g src/app/dashboard/DashboardClient.tsx)",
+      "Bash(sed -i -e 's#@/components/layout/ResumeBuilderNav#@/components/layout/DashboardNav#g' -e s/ResumeBuilderNav/DashboardNav/g -e s/ResumeBuilderLayout/DashboardLayout/g src/app/dashboard/layout.tsx)",
+      "Bash(sed -i -e 's#\\\\./ResumeBuilderDashboardClient#./DashboardClient#g' -e s/ResumeBuilderDashboardClient/DashboardClient/g -e s/ResumeBuilderPage/DashboardPage/g src/app/dashboard/page.tsx)",
+      "Bash(xargs sed -i 's#@/features/dashboard#@/features/resume-builder#g')",
+      "Bash(ps *)",
+      "Bash(kill 30335 30334)",
+      "Bash(nohup npm run dev)",
+      "Bash(disown)",
+      "Bash(echo \"started pid $!\")",
+      "Bash(break)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\\\\n\" http://localhost:3000/dashboard)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\\\\n\" http://localhost:3000/)",
+      "Bash(curl -sv http://localhost:3000/dashboard)",
+      "Bash(xargs -I{} sh -c 'echo \"=== {} ===\"; grep -nE \"^\\(function|export function\\) [A-Z]\" {}')",
+      "Bash(git stash *)",
+      "Read(//home/tingl/.cache/ms-playwright/chromium_headless_shell-1208/**)",
+      "Bash(~/.cache/ms-playwright/chromium_headless_shell-1208/chrome-headless-shell-linux64/chrome-headless-shell --no-sandbox --disable-gpu --window-size=1440,900 --virtual-time-budget=2000 --dump-dom file://__TRACKED_VAR__/probe.html)",
+      "Bash(sed -i 's| w-80 h-full min-h-0 overflow-hidden\"| w-80\"|; s|duration-200 w-12 h-full min-h-0 overflow-hidden\"|duration-200 w-12\"|' \"src/app/dashboard/resumes/[resumeId]/BlockLibraryRail.tsx\")",
+      "Bash(sed -i 's|duration-200 w-12 h-full min-h-0 overflow-hidden\"|duration-200 w-12\"|; s|duration-200 w-\\\\[440px\\\\] h-full min-h-0 overflow-hidden\"|duration-200 w-[440px]\"|' \"src/app/dashboard/resumes/[resumeId]/PreviewRail.tsx\")",
+      "Bash(~/.cache/ms-playwright/chromium_headless_shell-1208/chrome-headless-shell-linux64/chrome-headless-shell --no-sandbox --disable-gpu --window-size=1600,900 --virtual-time-budget=2000 --dump-dom file://__TRACKED_VAR__/probe2.html)",
+      "Bash(curl -s -o /dev/null -w \"status=%{http_code}\\\\n\" --max-time 60 \"http://localhost:3000/dashboard/resumes/probe-compile-check\")",
+      "Bash(curl -s --max-time 60 \"http://localhost:3000/dashboard\")",
+      "Bash(~/.cache/ms-playwright/chromium_headless_shell-1208/chrome-headless-shell-linux64/chrome-headless-shell --no-sandbox --disable-gpu --window-size=1000,600 --virtual-time-budget=1500 --dump-dom file://__TRACKED_VAR__/probe3.html)",
+      "Bash(sed 's/flex-shrink:0;align-self:flex-start;width:256px/align-self:flex-start;width:256px/' probe3.html)",
+      "Bash(~/.cache/ms-playwright/chromium_headless_shell-1208/chrome-headless-shell-linux64/chrome-headless-shell --no-sandbox --disable-gpu --window-size=1000,600 --virtual-time-budget=1500 --dump-dom file://__TRACKED_VAR__/probe4.html)",
+      "Bash(~/.cache/ms-playwright/chromium_headless_shell-1208/chrome-headless-shell-linux64/chrome-headless-shell --no-sandbox --disable-gpu --window-size=1600,900 --virtual-time-budget=1500 --dump-dom file://__TRACKED_VAR__/probe5.html)",
+      "Bash(sed 's/id=\"PANELROOT\" style=\"flex:1 1 0%;min-height:0;/id=\"PANELROOT\" style=\"flex:1 1 0%;min-height:0;min-width:0;/' probe5.html)",
+      "Bash(~/.cache/ms-playwright/chromium_headless_shell-1208/chrome-headless-shell-linux64/chrome-headless-shell --no-sandbox --disable-gpu --window-size=1600,900 --virtual-time-budget=1500 --dump-dom file://__TRACKED_VAR__/probe6.html)"
     ]
-  }
+  },
+  "enabledMcpjsonServers": [
+    "shadcn"
+  ]
 }

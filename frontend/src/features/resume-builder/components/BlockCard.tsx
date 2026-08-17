@@ -2,6 +2,7 @@
 
 import { useDraggable } from "@dnd-kit/core";
 import { CSS } from "@dnd-kit/utilities";
+import { cn } from "@/lib/utils";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { getEdgeColor, getEdgeStripeBackground, isDashedEdge } from "@/features/resume-builder/lib/blockTypeEdge";
 import type {
@@ -67,6 +68,7 @@ interface Props {
   /** Opens the block editor modal. When provided, clicking the card opens the editor instead of firing `onClick`. */
   onOpenEditor?: () => void;
   isEditing?: boolean;
+  className?: string;
 }
 
 export function BlockCard({
@@ -77,6 +79,7 @@ export function BlockCard({
   usageCount = 1,
   onOpenEditor,
   isEditing,
+  className,
 }: Props) {
   const label = BLOCK_TYPE_LABELS[block.block_type] ?? block.block_type;
   const excerpt = getExcerpt(block);
@@ -101,9 +104,11 @@ export function BlockCard({
     <Card
       ref={setNodeRef}
       style={{ transform: CSS.Translate.toString(transform), opacity: isDragging ? 0.4 : 1 }}
-      className={`relative overflow-hidden cursor-pointer transition-shadow hover:shadow-md pl-1.5 ${
-        isEditing ? "ring-2 ring-accent-teal" : ""
-      }`}
+      className={cn(
+        "relative overflow-hidden cursor-pointer transition-shadow hover:shadow-md pl-1.5",
+        isEditing && "ring-2 ring-accent-teal",
+        className
+      )}
       onClick={handleClick}
       {...attributes}
       {...listeners}

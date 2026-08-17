@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { cn } from "@/lib/utils";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -31,6 +32,11 @@ interface Props {
   editingBlockId?: string | null;
   onOpenEditor?: (block: ResumeBlock) => void;
   getUsageCount?: (blockId: string) => number;
+  /**
+   * "grid" packs cards into responsive columns — for wide, short containers
+   * like the builder's top library pane. "list" is the narrow-column default.
+   */
+  layout?: "list" | "grid";
 }
 
 const SECTION_TYPE_LABELS: Record<BlockType, string> = {
@@ -55,6 +61,7 @@ export function BlockLibraryPanel({
   editingBlockId,
   onOpenEditor,
   getUsageCount,
+  layout = "list",
 }: Props) {
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState<BlockType | "all">("all");
@@ -71,17 +78,17 @@ export function BlockLibraryPanel({
   });
 
   return (
-    <div className="flex flex-col gap-3 h-full">
+    <div className="flex-1 min-h-0 min-w-0 flex flex-col gap-3">
       <Input
         placeholder="Search blocks…"
         value={search}
         onChange={(e) => setSearch(e.target.value)}
-        className="text-sm"
+        className="text-sm shrink-0"
       />
 
       {/* Active section banner */}
       {activeSectionType ? (
-        <div className="flex items-center justify-between rounded-lg bg-primary/10 px-3 py-1.5 text-xs font-medium text-primary">
+        <div className="shrink-0 flex items-center justify-between rounded-lg bg-primary/10 px-3 py-1.5 text-xs font-medium text-primary">
           <span>Adding to: {SECTION_TYPE_LABELS[activeSectionType]}</span>
           {onClearActiveSection && (
             <button
@@ -112,23 +119,27 @@ export function BlockLibraryPanel({
         </div>
       )}
 
-      <div className="flex flex-col gap-2 p-2 overflow-y-auto">
+      <div
+        className={cn(
+          "flex p-2 overflow-x-auto gap-2 max-w-full"
+        )}
+      >
         {loading && (
           <>
             {[...Array(4)].map((_, i) => (
-              <Skeleton key={i} className="h-20 rounded-lg" />
+              <Skeleton key={i} className="shrink-0 w-64 h-20 rounded-lg" />
             ))}
           </>
         )}
 
         {error && (
-          <Alert variant="destructive">
+          <Alert variant="destructive" className="shrink-0">
             <AlertDescription>{error}</AlertDescription>
           </Alert>
         )}
 
         {!loading && !error && visible.length === 0 && (
-          <p className="text-sm text-muted-foreground text-center pt-6">
+          <p className="shrink-0 text-sm text-muted-foreground text-center pt-6">
             {blocks.length === 0
               ? "No blocks yet."
               : "No blocks match your search."}
@@ -147,6 +158,7 @@ export function BlockLibraryPanel({
             usageCount={getUsageCount ? getUsageCount(block.id) : 1}
             isEditing={editingBlockId === block.id}
             onOpenEditor={onOpenEditor ? () => onOpenEditor(block) : undefined}
+            className="shrink-0 w-64"
           />
         ))}
       </div>

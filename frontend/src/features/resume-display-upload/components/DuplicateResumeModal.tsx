@@ -38,7 +38,7 @@ export function DuplicateResumeModal({ resume, onClose }: Props) {
       newDisplayName: name.trim() || `${sourceName} copy`,
     });
     onClose();
-    router.push(`/resume-builder/resumes/${created.id}`);
+    router.push(`/dashboard/resumes/${created.id}`);
   }
 
   return (

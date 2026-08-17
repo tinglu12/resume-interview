@@ -179,7 +179,7 @@ export function JobForm() {
             {!resumesQuery.isPending && builderResumes.length === 0 && (
               <p className="text-sm text-muted-foreground">
                 No builder resumes found.{" "}
-                <a href="/resume-builder" className="underline">
+                <a href="/dashboard" className="underline">
                   Create one in Resume Builder
                 </a>
                 .
