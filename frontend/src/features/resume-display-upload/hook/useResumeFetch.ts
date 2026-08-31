@@ -1,22 +1,9 @@
 "use client";
 
-import { useAuth } from "@clerk/nextjs";
-import { useQuery } from "@tanstack/react-query";
-import { listResumes } from "../api";
-import type { Resume } from "@/types";
+import { useResumesQuery } from "../lib/resumes";
 
-export function useResumeFetch() {
-  const { getToken } = useAuth();
-
-  const query = useQuery({
-    queryKey: ["resumes"],
-    queryFn: async (): Promise<Resume[]> => {
-      const token = await getToken();
-      if (!token) throw new Error("Not authenticated");
-      return listResumes(token);
-    },
-  });
-
+export function useResumeFetch(options: { enabled?: boolean } = {}) {
+  const query = useResumesQuery(options);
   const resumes = query.data ?? [];
 
   return {

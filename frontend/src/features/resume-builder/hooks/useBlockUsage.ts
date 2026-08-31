@@ -1,10 +1,7 @@
 "use client";
 
-import { useAuth } from "@clerk/nextjs";
-import { useQueries, useQuery } from "@tanstack/react-query";
-import { getResumeSections } from "../api";
-import { listResumes } from "@/features/resume-display-upload/api";
-import type { Resume, ResumeSection } from "@/types";
+import { useResumesQuery } from "@/features/resume-display-upload/lib/resumes";
+import { useSectionsForResumesQuery } from "../lib/block-usage";
 
 export interface BlockUsage {
   count: number;
@@ -17,29 +14,9 @@ export interface BlockUsage {
 // at this app's per-user scale (a handful to a few dozen resumes) but wouldn't
 // scale to a multi-tenant view. A real backend aggregate would be the fix.
 export function useBlockUsage() {
-  const { getToken } = useAuth();
-
-  const resumesQuery = useQuery({
-    queryKey: ["resumes"],
-    queryFn: async (): Promise<Resume[]> => {
-      const token = await getToken();
-      if (!token) throw new Error("Not authenticated");
-      return listResumes(token);
-    },
-  });
-
+  const resumesQuery = useResumesQuery();
   const builderResumes = (resumesQuery.data ?? []).filter((r) => r.resume_type === "builder");
-
-  const sectionsQueries = useQueries({
-    queries: builderResumes.map((r) => ({
-      queryKey: ["resume-sections", r.id],
-      queryFn: async (): Promise<ResumeSection[]> => {
-        const token = await getToken();
-        if (!token) throw new Error("Not authenticated");
-        return getResumeSections(r.id, token);
-      },
-    })),
-  });
+  const sectionsQueries = useSectionsForResumesQuery(builderResumes.map((r) => r.id));
 
   const loading = resumesQuery.isPending || sectionsQueries.some((q) => q.isPending);
 
