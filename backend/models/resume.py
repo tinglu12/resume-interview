@@ -16,7 +16,7 @@ if TYPE_CHECKING:
 
 
 class Resume(Base):
-    __tablename__ = "resumes"
+    __tablename__: str = "resumes"
 
     id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     user_id: Mapped[str] = mapped_column(Text, nullable=False, index=True)

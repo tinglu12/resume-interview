@@ -4,7 +4,10 @@ from fastapi.responses import JSONResponse
 
 from config import settings
 from routers import resume
-from routers.resume_blocks import router as resume_blocks_router
+from routers.resume_blocks import assembly as resume_assembly
+from routers.resume_blocks import blocks as resume_blocks
+from routers.resume_blocks import parsing as resume_blocks_parsing
+from routers.resume_blocks import sections as resume_sections
 from services.errors import ServiceError
 
 app = FastAPI(title="Resume Interview API")
@@ -26,7 +29,10 @@ app.add_middleware(
 )
 
 app.include_router(resume.router)
-app.include_router(resume_blocks_router)
+app.include_router(resume_blocks.router)
+app.include_router(resume_blocks_parsing.router)
+app.include_router(resume_assembly.router)
+app.include_router(resume_sections.router)
 
 if settings.enable_interview:
     from interview.routers import answers, jobs, sessions

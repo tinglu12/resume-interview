@@ -1,8 +1,6 @@
 "use client";
 
 import { useRef, useState } from "react";
-import { useAuth } from "@clerk/nextjs";
-import { useQuery } from "@tanstack/react-query";
 import { DndContext, DragOverlay } from "@dnd-kit/core";
 import type { PanelImperativeHandle } from "react-resizable-panels";
 import { useBlocks } from "@/features/resume-builder/hooks/useBlocks";
@@ -10,12 +8,12 @@ import { useResumeSections } from "@/features/resume-builder/hooks/useResumeSect
 import { useCanvasDnd } from "@/features/resume-builder/hooks/useCanvasDnd";
 import { useBlockUsage } from "@/features/resume-builder/hooks/useBlockUsage";
 import { ResumeCanvas } from "@/features/resume-builder/components/ResumeCanvas";
-import { getResume } from "@/features/resume-display-upload/api";
+import { useResume } from "@/features/resume-display-upload/hook/useResume";
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from "@/components/ui/resizable";
 import { BlockLibraryPane } from "./BlockLibraryPane";
 import { PreviewRail } from "./PreviewRail";
 import { DragOverlayContent } from "./DragOverlayContent";
-import type { BlockType, Resume } from "@/types";
+import type { BlockType } from "@/types";
 
 const COLLAPSED_SIZE = 48;
 
@@ -24,7 +22,6 @@ interface Props {
 }
 
 export function ResumeCanvasClient({ resumeId }: Props) {
-  const { getToken } = useAuth();
   const [activeSectionId, setActiveSectionId] = useState<string | null>(null);
   const [libraryOpen, setLibraryOpen] = useState(true);
   const [previewOpen, setPreviewOpen] = useState(true);
@@ -45,14 +42,7 @@ export function ResumeCanvasClient({ resumeId }: Props) {
     onBlockDragEnd,
   } = useResumeSections(resumeId);
 
-  const resumeQuery = useQuery({
-    queryKey: ["resume", resumeId],
-    queryFn: async (): Promise<Resume> => {
-      const token = await getToken();
-      if (!token) throw new Error("Not authenticated");
-      return getResume(resumeId, token);
-    },
-  });
+  const { resume, isPending: resumeIsPending } = useResume(resumeId);
 
   const { sensors, collisionDetection, activeBlock, handleDragStart, handleDragEnd, handleDragCancel } =
     useCanvasDnd({ sections, blocks, onSectionDragEnd, onBlockDragEnd, attachBlock });
@@ -183,7 +173,7 @@ export function ResumeCanvasClient({ resumeId }: Props) {
           collapsedSize={COLLAPSED_SIZE}
           defaultSize="46%"
           minSize={380}
-          maxSize={720}
+          maxSize="62%"
           onResize={() => setPreviewOpen(!previewPanelRef.current?.isCollapsed())}
           className="min-h-0 flex flex-col overflow-hidden"
         >
@@ -191,9 +181,9 @@ export function ResumeCanvasClient({ resumeId }: Props) {
             open={previewOpen}
             onOpen={() => previewPanelRef.current?.expand()}
             onClose={() => previewPanelRef.current?.collapse()}
-            resume={resumeQuery.data}
+            resume={resume}
             resumeId={resumeId}
-            isPending={resumeQuery.isPending}
+            isPending={resumeIsPending}
             slots={attachedSlots}
             sections={sections}
           />

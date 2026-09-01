@@ -3,16 +3,14 @@
 import { useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@clerk/nextjs";
-import { useQuery } from "@tanstack/react-query";
 import { createJob } from "../api";
-import { listResumes } from "@/features/resume-display-upload/api";
+import { useResumeFetch } from "@/features/resume-display-upload/hook/useResumeFetch";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Card, CardContent } from "@/components/ui/card";
-import type { Resume } from "@/types";
 
 type ResumeMode = "upload" | "builder";
 
@@ -31,19 +29,9 @@ export function JobForm() {
   const [error, setError] = useState<string | null>(null);
 
   // Load assembled resumes for the builder option
-  const resumesQuery = useQuery({
-    queryKey: ["resumes"],
-    queryFn: async (): Promise<Resume[]> => {
-      const token = await getToken();
-      if (!token) throw new Error("Not authenticated");
-      return listResumes(token);
-    },
+  const { assembledResumes: builderResumes, loading: resumesLoading } = useResumeFetch({
     enabled: resumeMode === "builder",
   });
-
-  const builderResumes = (resumesQuery.data ?? []).filter(
-    (r) => r.resume_type === "builder"
-  );
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -173,10 +161,10 @@ export function JobForm() {
 
         {resumeMode === "builder" && (
           <div className="space-y-2">
-            {resumesQuery.isPending && (
+            {resumesLoading && (
               <p className="text-sm text-muted-foreground">Loading resumes…</p>
             )}
-            {!resumesQuery.isPending && builderResumes.length === 0 && (
+            {!resumesLoading && builderResumes.length === 0 && (
               <p className="text-sm text-muted-foreground">
                 No builder resumes found.{" "}
                 <a href="/dashboard" className="underline">
