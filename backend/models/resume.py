@@ -34,7 +34,9 @@ class Resume(Base):
         nullable=True,
     )
     created_at: Mapped[datetime] = mapped_column(TIMESTAMP(timezone=True), server_default=func.now())
-    updated_at: Mapped[datetime] = mapped_column(TIMESTAMP(timezone=True), server_default=func.now(), onupdate=func.now())
+    updated_at: Mapped[datetime] = mapped_column(
+        TIMESTAMP(timezone=True), server_default=func.now(), onupdate=func.now()
+    )
 
     # Ordered associations to blocks (only populated for resume_type="builder")
     block_associations: Mapped[list[ResumeBlockAssociation]] = relationship(

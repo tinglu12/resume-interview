@@ -102,3 +102,36 @@ backend/
 ## Docker
 
 docker compose up
+
+---
+
+## Testing
+
+Tests run against a dedicated Postgres database (`resume_interview_test`) on
+the same local Docker container used for dev — never against the dev or
+prod database. Each test runs inside a transaction that's rolled back at
+teardown, so tests can't leak data into each other.
+
+### One-time setup
+
+```bash
+.venv/bin/pip install -r requirements-dev.txt
+
+# Create the test database (only needed once; uses the same Postgres
+# container as local dev, see docker-compose.yml)
+docker exec backend-postgres-1 psql -U postgres -c "CREATE DATABASE resume_interview_test;"
+```
+
+### Running tests
+
+```bash
+.venv/bin/pytest                              # run the suite
+.venv/bin/pytest -v                           # verbose
+.venv/bin/pytest --cov --cov-report=term-missing  # with coverage
+```
+
+Auth is stubbed in tests: `tests/conftest.py` overrides the
+`verify_clerk_token` FastAPI dependency with a fixed test user id, so tests
+don't need real Clerk JWTs. `tests/conftest.py` also overrides `get_db` to
+hand out the per-test transactional session.
+

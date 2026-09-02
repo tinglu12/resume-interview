@@ -38,9 +38,7 @@ class ResumeBlockRepository:
 
     async def list_for_user(self, user_id: str) -> list[ResumeBlock]:
         result = await self.db.execute(
-            select(ResumeBlock)
-            .where(ResumeBlock.user_id == user_id)
-            .order_by(ResumeBlock.created_at.desc())
+            select(ResumeBlock).where(ResumeBlock.user_id == user_id).order_by(ResumeBlock.created_at.desc())
         )
         return list(result.scalars().all())
 
@@ -61,9 +59,7 @@ class ResumeBlockRepository:
         )
         return len(result.scalars().all())
 
-    async def get_associations_for_resume(
-        self, resume_id: uuid.UUID
-    ) -> list[ResumeBlockAssociation]:
+    async def get_associations_for_resume(self, resume_id: uuid.UUID) -> list[ResumeBlockAssociation]:
         result = await self.db.execute(
             select(ResumeBlockAssociation)
             .where(ResumeBlockAssociation.resume_id == resume_id)
@@ -72,9 +68,7 @@ class ResumeBlockRepository:
         )
         return list(result.scalars().all())
 
-    async def get_association(
-        self, resume_id: uuid.UUID, block_id: uuid.UUID
-    ) -> ResumeBlockAssociation | None:
+    async def get_association(self, resume_id: uuid.UUID, block_id: uuid.UUID) -> ResumeBlockAssociation | None:
         result = await self.db.execute(
             select(ResumeBlockAssociation).where(
                 ResumeBlockAssociation.resume_id == resume_id,
@@ -89,9 +83,7 @@ class ResumeBlockRepository:
         await self.db.refresh(assoc)
         return assoc
 
-    async def create_associations(
-        self, assocs: list[ResumeBlockAssociation]
-    ) -> list[ResumeBlockAssociation]:
+    async def create_associations(self, assocs: list[ResumeBlockAssociation]) -> list[ResumeBlockAssociation]:
         for assoc in assocs:
             self.db.add(assoc)
         await self.db.commit()
@@ -108,9 +100,7 @@ class ResumeBlockRepository:
         )
         await self.db.commit()
 
-    async def bulk_update_positions(
-        self, updates: list[tuple[uuid.UUID, uuid.UUID, int]]
-    ) -> None:
+    async def bulk_update_positions(self, updates: list[tuple[uuid.UUID, uuid.UUID, int]]) -> None:
         """Update positions for multiple (resume_id, block_id) pairs."""
         for resume_id, block_id, position in updates:
             result = await self.db.execute(

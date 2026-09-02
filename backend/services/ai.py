@@ -83,12 +83,19 @@ class AiService:
 
     async def ocr_resume(self, page_images_b64: list[str]) -> str:
         """Use GPT-4o Vision to extract text from scanned PDF page images."""
-        content = [{"type": "text", "text": "Extract all text from these resume pages exactly as written. Return plain text only, preserving structure with newlines."}]
+        content = [
+            {
+                "type": "text",
+                "text": "Extract all text from these resume pages exactly as written. Return plain text only, preserving structure with newlines.",
+            }
+        ]
         for img_b64 in page_images_b64:
-            content.append({
-                "type": "image_url",
-                "image_url": {"url": f"data:image/png;base64,{img_b64}", "detail": "high"},
-            })
+            content.append(
+                {
+                    "type": "image_url",
+                    "image_url": {"url": f"data:image/png;base64,{img_b64}", "detail": "high"},
+                }
+            )
         response = await self._client.chat.completions.create(
             model="gpt-4o",
             messages=[{"role": "user", "content": content}],

@@ -28,9 +28,7 @@ class JobService:
         self._pdf = pdf or PdfService()
         self._storage = storage or StorageService()
         self._ai = ai or AiService()
-        self._resume_service = resume_service or ResumeService(
-            db, storage=self._storage, pdf=self._pdf, ai=self._ai
-        )
+        self._resume_service = resume_service or ResumeService(db, storage=self._storage, pdf=self._pdf, ai=self._ai)
 
     async def create_job(
         self,

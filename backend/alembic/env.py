@@ -21,6 +21,7 @@ sync_url = db_url.replace("postgresql+asyncpg://", "postgresql://")
 config.set_main_option("sqlalchemy.url", sync_url)
 
 from models import Base  # noqa: E402
+
 target_metadata = Base.metadata
 
 # Keep Base.metadata aware of jobs/sessions/answers even when ENABLE_INTERVIEW

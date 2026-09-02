@@ -3,8 +3,8 @@ from datetime import datetime
 
 from pydantic import BaseModel
 
-
 # ── Per-type content schemas ──────────────────────────────────────────────────
+
 
 class WorkExperienceContent(BaseModel):
     company: str
@@ -91,6 +91,7 @@ VALID_BLOCK_TYPES = set(CONTENT_SCHEMA_MAP.keys())
 
 # ── Request / Response schemas ────────────────────────────────────────────────
 
+
 class ResumeBlockCreate(BaseModel):
     block_type: str
     title: str
@@ -116,6 +117,7 @@ class ResumeBlockOut(BaseModel):
 
 
 # ── Parse flow schemas ────────────────────────────────────────────────────────
+
 
 class ParseResumeRequest(BaseModel):
     resume_id: uuid.UUID
@@ -144,6 +146,7 @@ class SaveParsedBlocksResponse(BaseModel):
 
 # ── Assembly schemas ──────────────────────────────────────────────────────────
 
+
 class AssembledResumeCreate(BaseModel):
     display_name: str
 
@@ -168,6 +171,7 @@ class BlockOnResumeOut(BaseModel):
 
 
 # ── Section schemas ───────────────────────────────────────────────────────────
+
 
 class ResumeSectionCreate(BaseModel):
     section_type: str

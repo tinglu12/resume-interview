@@ -1,0 +1,31 @@
+target-version = "py312"
+line-length = 120
+extend-exclude = ["alembic/versions"]
+
+[lint]
+select = [
+    "E",   # pycodestyle errors
+    "F",   # pyflakes
+    "I",   # isort
+    "UP",  # pyupgrade
+    "B",   # flake8-bugbear
+]
+
+[lint.isort]
+known-first-party = [
+    "auth", "config", "database", "interview", "main",
+    "models", "repositories", "routers", "schemas", "services",
+]
+
+[lint.per-file-ignores]
+# Long lines here are GPT prompt prose, not code — wrapping them would alter
+# what gets sent to the model.
+"services/ai.py" = ["E501"]
+
+[lint.flake8-bugbear]
+# FastAPI's DI pattern relies on calling Depends()/Query()/etc. as a default
+# argument value, which B008 would otherwise flag.
+extend-immutable-calls = [
+    "fastapi.Depends", "fastapi.Query", "fastapi.Path", "fastapi.Body",
+    "fastapi.Header", "fastapi.Cookie", "fastapi.File", "fastapi.Form",
+]

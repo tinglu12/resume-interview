@@ -4,8 +4,8 @@ import uuid
 from datetime import datetime
 from typing import TYPE_CHECKING
 
-from sqlalchemy import ForeignKey, Integer, Text, TIMESTAMP, func
-from sqlalchemy.dialects.postgresql import UUID, JSONB
+from sqlalchemy import TIMESTAMP, ForeignKey, Integer, Text, func
+from sqlalchemy.dialects.postgresql import JSONB, UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from database import Base
