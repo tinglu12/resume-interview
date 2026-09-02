@@ -112,7 +112,7 @@ class ResumeSectionService:
             section = section_map.get(section_id)
             if section and section.section_type == "personal_info" and position != 0:
                 raise ServiceError(422, "The personal_info section must remain at position 0")
-        await self._sections.bulk_update_positions(reorder)
+        await self._sections.bulk_update_positions(resume_id, reorder)
 
     async def attach_block_to_section(
         self,

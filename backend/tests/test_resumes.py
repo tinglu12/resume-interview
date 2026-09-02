@@ -1,10 +1,5 @@
 import uuid
 
-import pytest_asyncio
-from httpx import ASGITransport, AsyncClient
-
-from database import get_db
-from main import app
 from models import Resume
 
 
@@ -14,22 +9,6 @@ async def _create_resume(db_session, *, user_id: str, filename: str = "resume.pd
     await db_session.commit()
     await db_session.refresh(resume)
     return resume
-
-
-@pytest_asyncio.fixture
-async def unauthenticated_client(db_session):
-    """A client with the DB overridden but real Clerk auth still enforced."""
-
-    async def override_get_db():
-        yield db_session
-
-    app.dependency_overrides[get_db] = override_get_db
-
-    transport = ASGITransport(app=app)
-    async with AsyncClient(transport=transport, base_url="http://test") as ac:
-        yield ac
-
-    app.dependency_overrides.clear()
 
 
 async def test_list_resumes_empty(client):

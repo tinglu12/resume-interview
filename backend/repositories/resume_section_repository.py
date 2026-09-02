@@ -44,9 +44,14 @@ class ResumeSectionRepository:
         await self.db.execute(delete(ResumeSection).where(ResumeSection.id == section_id))
         await self.db.commit()
 
-    async def bulk_update_positions(self, updates: list[tuple[uuid.UUID, int]]) -> None:
+    async def bulk_update_positions(self, resume_id: uuid.UUID, updates: list[tuple[uuid.UUID, int]]) -> None:
         for section_id, position in updates:
-            result = await self.db.execute(select(ResumeSection).where(ResumeSection.id == section_id))
+            result = await self.db.execute(
+                select(ResumeSection).where(
+                    ResumeSection.id == section_id,
+                    ResumeSection.resume_id == resume_id,
+                )
+            )
             section = result.scalar_one_or_none()
             if section:
                 section.position = position

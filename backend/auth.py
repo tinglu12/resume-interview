@@ -46,3 +46,5 @@ async def verify_clerk_token(
         return user_id
     except JWTError as e:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=str(e)) from e
+    except httpx.HTTPError as e:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Unable to verify token") from e
