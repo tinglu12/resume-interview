@@ -4,7 +4,7 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from models import ResumeBlockAssociation, ResumeSection
-from repositories import ResumeSectionRepository, ResumeBlockRepository, ResumeRepository
+from repositories import ResumeBlockRepository, ResumeRepository, ResumeSectionRepository
 from schemas.resume_block import VALID_BLOCK_TYPES
 from services.errors import ServiceError
 
@@ -59,9 +59,7 @@ class ResumeSectionService:
         )
         return await self._sections.create(section)
 
-    async def create_personal_info_section(
-        self, resume_id: uuid.UUID
-    ) -> ResumeSection:
+    async def create_personal_info_section(self, resume_id: uuid.UUID) -> ResumeSection:
         """Auto-create the pinned personal_info section at position 0."""
         section = ResumeSection(
             resume_id=resume_id,
@@ -71,9 +69,7 @@ class ResumeSectionService:
         )
         return await self._sections.create(section)
 
-    async def get_sections_for_resume(
-        self, resume_id: uuid.UUID, user_id: str
-    ) -> list[ResumeSection]:
+    async def get_sections_for_resume(self, resume_id: uuid.UUID, user_id: str) -> list[ResumeSection]:
         await self._require_resume(resume_id, user_id)
         return await self._sections.get_sections_for_resume(resume_id)
 
@@ -96,9 +92,7 @@ class ResumeSectionService:
             section.position = position
         return await self._sections.update(section)
 
-    async def delete_section(
-        self, section_id: uuid.UUID, resume_id: uuid.UUID, user_id: str
-    ) -> None:
+    async def delete_section(self, section_id: uuid.UUID, resume_id: uuid.UUID, user_id: str) -> None:
         await self._require_resume(resume_id, user_id)
         section = await self._require_section(section_id, resume_id)
         if section.section_type == "personal_info":
@@ -149,8 +143,8 @@ class ResumeSectionService:
         )
         try:
             return await self._sections.create_association(assoc)
-        except IntegrityError:
-            raise ServiceError(409, "Block is already attached to this resume")
+        except IntegrityError as e:
+            raise ServiceError(409, "Block is already attached to this resume") from e
 
     async def detach_block_from_section(
         self,
@@ -177,9 +171,7 @@ class ResumeSectionService:
         await self._require_section(section_id, resume_id)
         await self._sections.bulk_update_section_block_positions(section_id, reorder)
 
-    async def get_section_with_blocks(
-        self, section_id: uuid.UUID, resume_id: uuid.UUID
-    ) -> ResumeSection:
+    async def get_section_with_blocks(self, section_id: uuid.UUID, resume_id: uuid.UUID) -> ResumeSection:
         sections = await self._sections.get_sections_for_resume(resume_id)
         for s in sections:
             if s.id == section_id:

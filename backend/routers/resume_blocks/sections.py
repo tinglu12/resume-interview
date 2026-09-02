@@ -52,9 +52,7 @@ async def create_section(
     db: AsyncSession = Depends(get_db),
 ) -> ResumeSectionOut:
     svc = ResumeSectionService(db)
-    section = await svc.create_section(
-        resume_id, user_id, body.section_type, body.display_name, body.position
-    )
+    section = await svc.create_section(resume_id, user_id, body.section_type, body.display_name, body.position)
     return _section_to_out(await svc.get_section_with_blocks(section.id, resume_id))
 
 
@@ -89,7 +87,9 @@ async def update_section(
 ) -> ResumeSectionOut:
     svc = ResumeSectionService(db)
     await svc.update_section(
-        section_id, resume_id, user_id,
+        section_id,
+        resume_id,
+        user_id,
         display_name=body.display_name,
         position=body.position,
     )
@@ -122,9 +122,7 @@ async def attach_block_to_section(
     db: AsyncSession = Depends(get_db),
 ) -> ResumeSectionOut:
     svc = ResumeSectionService(db)
-    await svc.attach_block_to_section(
-        section_id, resume_id, user_id, body.block_id, body.position
-    )
+    await svc.attach_block_to_section(section_id, resume_id, user_id, body.block_id, body.position)
     return _section_to_out(await svc.get_section_with_blocks(section_id, resume_id))
 
 
@@ -139,9 +137,7 @@ async def detach_block_from_section(
     user_id: str = Depends(verify_clerk_token),
     db: AsyncSession = Depends(get_db),
 ) -> None:
-    await ResumeSectionService(db).detach_block_from_section(
-        section_id, resume_id, user_id, block_id
-    )
+    await ResumeSectionService(db).detach_block_from_section(section_id, resume_id, user_id, block_id)
 
 
 @router.patch(

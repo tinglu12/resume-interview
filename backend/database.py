@@ -1,9 +1,10 @@
-from urllib.parse import urlparse, urlencode, parse_qs, urlunparse
+from urllib.parse import parse_qs, urlencode, urlparse, urlunparse
 
-from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine, async_sessionmaker
+from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 from sqlalchemy.orm import DeclarativeBase
 
 from config import settings
+
 
 # asyncpg doesn't accept sslmode/channel_binding query params — strip them
 # and pass SSL via connect_args instead
@@ -14,6 +15,7 @@ def _clean_url(url: str) -> str:
     params.pop("channel_binding", None)
     clean = parsed._replace(query=urlencode({k: v[0] for k, v in params.items()}))
     return urlunparse(clean)
+
 
 _url = _clean_url(settings.database_url)
 _ssl = "require" if "neon.tech" in settings.database_url else None

@@ -18,7 +18,9 @@ class ResumeBlockService:
 
     def _validate_content(self, block_type: str, content: dict) -> dict:
         if block_type not in VALID_BLOCK_TYPES:
-            raise ServiceError(400, f"Invalid block_type '{block_type}'. Must be one of: {', '.join(sorted(VALID_BLOCK_TYPES))}")
+            raise ServiceError(
+                400, f"Invalid block_type '{block_type}'. Must be one of: {', '.join(sorted(VALID_BLOCK_TYPES))}"
+            )
         schema_cls = CONTENT_SCHEMA_MAP[block_type]
         validated = schema_cls.model_validate(content)
         return validated.model_dump()
@@ -99,9 +101,7 @@ class ResumeBlockService:
         await self._db.refresh(resume)
         return resume
 
-    async def get_blocks_for_resume(
-        self, resume_id: uuid.UUID, user_id: str
-    ) -> list[ResumeBlockAssociation]:
+    async def get_blocks_for_resume(self, resume_id: uuid.UUID, user_id: str) -> list[ResumeBlockAssociation]:
         resume = await self._resumes.get_by_id_for_user(resume_id, user_id)
         if not resume:
             raise ServiceError(404, "Resume not found")
@@ -121,14 +121,10 @@ class ResumeBlockService:
         existing = await self._blocks.get_association(resume_id, block_id)
         if existing:
             raise ServiceError(409, "Block is already attached to this resume")
-        assoc = ResumeBlockAssociation(
-            resume_id=resume_id, block_id=block_id, position=position
-        )
+        assoc = ResumeBlockAssociation(resume_id=resume_id, block_id=block_id, position=position)
         return await self._blocks.create_association(assoc)
 
-    async def detach_block(
-        self, resume_id: uuid.UUID, user_id: str, block_id: uuid.UUID
-    ) -> None:
+    async def detach_block(self, resume_id: uuid.UUID, user_id: str, block_id: uuid.UUID) -> None:
         resume = await self._resumes.get_by_id_for_user(resume_id, user_id)
         if not resume:
             raise ServiceError(404, "Resume not found")
@@ -219,9 +215,7 @@ class ResumeBlockService:
 
     # ── Text rendering for job compatibility ──────────────────────────────────
 
-    async def get_resume_text_for_assembled(
-        self, resume_id: uuid.UUID, user_id: str
-    ) -> str:
+    async def get_resume_text_for_assembled(self, resume_id: uuid.UUID, user_id: str) -> str:
         """
         Renders an assembled resume's blocks as plain text.
         Used to snapshot resume text when creating a job application.
@@ -244,7 +238,9 @@ class ResumeBlockService:
 
         if bt == "work_experience":
             lines = [f"{c.get('role', '')} at {c.get('company', '')}"]
-            dates = " - ".join(filter(None, [c.get("start_date"), c.get("end_date") or ("Present" if c.get("is_current") else "")]))
+            dates = " - ".join(
+                filter(None, [c.get("start_date"), c.get("end_date") or ("Present" if c.get("is_current") else "")])
+            )
             if dates:
                 lines.append(dates)
             for b in c.get("bullets", []):

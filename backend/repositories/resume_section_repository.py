@@ -31,11 +31,7 @@ class ResumeSectionRepository:
             select(ResumeSection)
             .where(ResumeSection.resume_id == resume_id)
             .order_by(ResumeSection.position)
-            .options(
-                selectinload(ResumeSection.block_associations).selectinload(
-                    ResumeBlockAssociation.block
-                )
-            )
+            .options(selectinload(ResumeSection.block_associations).selectinload(ResumeBlockAssociation.block))
         )
         return list(result.scalars().all())
 
@@ -50,9 +46,7 @@ class ResumeSectionRepository:
 
     async def bulk_update_positions(self, updates: list[tuple[uuid.UUID, int]]) -> None:
         for section_id, position in updates:
-            result = await self.db.execute(
-                select(ResumeSection).where(ResumeSection.id == section_id)
-            )
+            result = await self.db.execute(select(ResumeSection).where(ResumeSection.id == section_id))
             section = result.scalar_one_or_none()
             if section:
                 section.position = position

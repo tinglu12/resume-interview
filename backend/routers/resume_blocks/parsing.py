@@ -4,9 +4,9 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from auth import verify_clerk_token
 from database import get_db
 from schemas import (
+    ParsedBlockPreview,
     ParseResumeRequest,
     ParseResumeResponse,
-    ParsedBlockPreview,
     ResumeBlockOut,
     SaveParsedBlocksRequest,
     SaveParsedBlocksResponse,
@@ -53,6 +53,7 @@ async def parse_resume(
     resume = await ResumeService(db).get_resume(body.resume_id, user_id)
     if not resume.resume_text:
         from services.errors import ServiceError
+
         raise ServiceError(400, "Resume has no extracted text to parse")
     raw_blocks = await AiService().parse_resume_into_blocks(resume.resume_text)
     # Fill in missing titles so the response always validates

@@ -6,9 +6,7 @@ from botocore.config import Config
 from config import settings
 
 _endpoint = (
-    settings.r2_endpoint
-    if settings.r2_endpoint
-    else f"https://{settings.r2_account_id}.r2.cloudflarestorage.com"
+    settings.r2_endpoint if settings.r2_endpoint else f"https://{settings.r2_account_id}.r2.cloudflarestorage.com"
 )
 
 _use_path_style = bool(settings.r2_endpoint)

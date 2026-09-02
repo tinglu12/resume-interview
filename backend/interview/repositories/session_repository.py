@@ -20,9 +20,7 @@ class SessionRepository:
 
     async def list_for_job(self, job_id: uuid.UUID) -> list[Session]:
         result = await self.db.execute(
-            select(Session)
-            .where(Session.job_id == job_id)
-            .order_by(Session.created_at.desc())
+            select(Session).where(Session.job_id == job_id).order_by(Session.created_at.desc())
         )
         return list(result.scalars().all())
 

@@ -17,6 +17,7 @@ app = FastAPI(title="Resume Interview API")
 async def service_error_handler(_request: Request, exc: ServiceError) -> JSONResponse:
     return JSONResponse(status_code=exc.status_code, content={"detail": exc.detail})
 
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
