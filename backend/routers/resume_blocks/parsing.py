@@ -77,6 +77,21 @@ async def parse_resume(
     )
 
 
+@router.delete("/parse/{preview_token}", status_code=status.HTTP_204_NO_CONTENT)
+async def cancel_parse_preview(
+    preview_token: str,
+    user_id: str = Depends(verify_clerk_token),
+) -> None:
+    """Discard a parsed-but-unsaved preview, e.g. when the user cancels the review modal.
+
+    Idempotent and silent on a missing/expired/foreign token — canceling a preview that's
+    already gone (or was never yours) is not an error from the caller's perspective.
+    """
+    entry = parse_preview_cache.get(preview_token)
+    if entry is not None and entry["user_id"] == user_id:
+        parse_preview_cache.pop(preview_token)
+
+
 @router.post("/save-parsed", response_model=SaveParsedBlocksResponse, status_code=status.HTTP_201_CREATED)
 async def save_parsed_blocks(
     body: SaveParsedBlocksRequest,

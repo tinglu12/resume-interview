@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import {
+  useCancelParsePreviewMutation,
   useParseResumeMutation,
   useSaveParsedMutation,
   type ImportPhase,
@@ -17,10 +18,15 @@ export function useResumeImport() {
 
   const parseResumeMutation = useParseResumeMutation(setPhase);
   const saveParsed = useSaveParsedMutation(setPhase);
+  const cancelPreview = useCancelParsePreviewMutation();
 
   return {
     parseResume: parseResumeMutation.mutateAsync,
     saveParsed: saveParsed.mutateAsync,
+    // Best-effort: frees the server-side preview cache entry immediately instead of
+    // waiting on its TTL. Fire-and-forget — a failure here isn't worth surfacing to
+    // the user, the entry will just expire on its own later.
+    cancelPreview: (previewToken: string) => cancelPreview.mutate(previewToken),
     phase,
     isImporting: parseResumeMutation.isPending,
     isSaving: saveParsed.isPending,

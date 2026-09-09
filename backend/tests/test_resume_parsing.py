@@ -154,6 +154,31 @@ async def test_parse_invalid_pdf_bytes(client, mock_extract_text, mock_parse):
     assert response.status_code == 400
 
 
+async def test_cancel_parse_preview_invalidates_token(client, mock_extract_text, mock_parse):
+    parse_response = await _parse(
+        client,
+        mock_extract_text,
+        mock_parse,
+        [{"block_type": "summary", "title": "Summary", "content": {"text": "Hi"}}],
+    )
+    preview_token = parse_response.json()["preview_token"]
+
+    cancel_response = await client.delete(f"/resume-blocks/parse/{preview_token}")
+    assert cancel_response.status_code == 204
+
+    # The cancelled token can no longer be used to save.
+    save_response = await client.post(
+        "/resume-blocks/save-parsed",
+        json={"preview_token": preview_token, "display_name": "Assembled", "blocks": []},
+    )
+    assert save_response.status_code == 400
+
+
+async def test_cancel_parse_preview_is_idempotent_on_unknown_token(client):
+    response = await client.delete("/resume-blocks/parse/not-a-real-token")
+    assert response.status_code == 204
+
+
 async def test_save_parsed_happy_path(client, mock_extract_text, mock_parse, db_session, test_user_id):
     parse_response = await _parse(
         client,

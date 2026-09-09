@@ -30,6 +30,10 @@ export async function parseResume(
   );
 }
 
+export async function cancelParsePreview(token: string, previewToken: string): Promise<void> {
+  return apiClient.delete(`/resume-blocks/parse/${previewToken}`, token);
+}
+
 export async function saveParsedBlocks(
   token: string,
   data: {

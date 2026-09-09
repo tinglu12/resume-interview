@@ -3,7 +3,7 @@
 import { useAuth } from "@clerk/nextjs";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { requireToken } from "@/lib/require-token";
-import { parseResume, saveParsedBlocks } from "../api";
+import { cancelParsePreview, parseResume, saveParsedBlocks } from "../api";
 import type { ParsedBlockPreview } from "@/types";
 
 export interface ParseResult {
@@ -24,6 +24,17 @@ export function useParseResumeMutation(onPhaseChange: (phase: ImportPhase) => vo
       return { previewToken: preview_token, blocks };
     },
     onSettled: () => onPhaseChange("idle"),
+  });
+}
+
+export function useCancelParsePreviewMutation() {
+  const { getToken } = useAuth();
+
+  return useMutation({
+    mutationFn: async (previewToken: string): Promise<void> => {
+      const token = await requireToken(getToken);
+      await cancelParsePreview(token, previewToken);
+    },
   });
 }
 

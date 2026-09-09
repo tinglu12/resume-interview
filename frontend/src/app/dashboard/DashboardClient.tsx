@@ -16,7 +16,7 @@ export function DashboardClient() {
   const router = useRouter();
 
   const { assembledResumes, loading: resumesLoading } = useResumeFetch();
-  const { saveParsed, isSaving, error: saveError } = useResumeImport();
+  const { saveParsed, cancelPreview, isSaving, error: saveError } = useResumeImport();
 
   // UI state
   const [showImport, setShowImport] = useState(false);
@@ -30,6 +30,12 @@ export function DashboardClient() {
     setParsedBlocks(blocks);
     setShowImport(false);
     setShowReview(true);
+  }
+
+  function handleCancelReview() {
+    if (previewToken) cancelPreview(previewToken);
+    setShowReview(false);
+    setPreviewToken(null);
   }
 
   async function handleSaveParsed(
@@ -79,7 +85,7 @@ export function DashboardClient() {
         open={showReview}
         blocks={parsedBlocks}
         onSave={handleSaveParsed}
-        onCancel={() => setShowReview(false)}
+        onCancel={handleCancelReview}
         isSaving={isSaving}
       />
 
