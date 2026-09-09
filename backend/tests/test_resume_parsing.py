@@ -98,6 +98,8 @@ async def test_parse_happy_path(client, mock_extract_text, mock_parse):
         ("summary", {}, "Summary"),
         ("custom", {"heading": "Awards"}, "Awards"),
         ("custom", {}, "Custom Section"),
+        ("personal_info", {"full_name": "Jane Doe"}, "Jane Doe"),
+        ("personal_info", {}, "Personal Info"),
         ("mystery_type", {}, "Mystery Type"),
     ],
 )
@@ -238,6 +240,39 @@ async def test_save_parsed_auto_creates_sections_for_parsed_blocks(client, mock_
     assert summary_section["position"] == 1
     assert len(summary_section["blocks"]) == 1
     assert summary_section["blocks"][0]["block"]["block_type"] == "summary"
+
+
+async def test_save_parsed_personal_info_block_merges_into_pinned_section(client, mock_extract_text, mock_parse):
+    parse_response = await _parse(
+        client,
+        mock_extract_text,
+        mock_parse,
+        [{"block_type": "personal_info", "title": "Jane Doe", "content": {"full_name": "Jane Doe"}}],
+    )
+    preview_token = parse_response.json()["preview_token"]
+
+    response = await client.post(
+        "/resume-blocks/save-parsed",
+        json={
+            "preview_token": preview_token,
+            "display_name": "Assembled",
+            "blocks": [
+                {"block_type": "personal_info", "title": "Jane Doe", "content": {"full_name": "Jane Doe"}}
+            ],
+        },
+    )
+
+    resume_id = response.json()["resume_id"]
+    sections_response = await client.get(f"/resumes/{resume_id}/sections")
+    sections = sections_response.json()
+
+    # Must NOT create a second/duplicate personal_info section — the parsed
+    # personal_info block should merge into the single pinned section at position 0.
+    assert [s["section_type"] for s in sections] == ["personal_info"]
+    personal_info_section = sections[0]
+    assert personal_info_section["position"] == 0
+    assert len(personal_info_section["blocks"]) == 1
+    assert personal_info_section["blocks"][0]["block"]["content"]["full_name"] == "Jane Doe"
 
 
 async def test_save_parsed_invalid_preview_token(client):

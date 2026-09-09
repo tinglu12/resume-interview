@@ -219,7 +219,9 @@ class ResumeBlockService:
 
         # Group blocks by type (preserving first-appearance order) into one section per type,
         # so a parsed-and-saved resume shows up populated instead of blank in the editor.
-        sections_by_type: dict[str, ResumeSection] = {}
+        # Pre-seed with the pinned personal_info section so a parsed personal_info block
+        # attaches into it instead of the loop below creating a duplicate section.
+        sections_by_type: dict[str, ResumeSection] = {"personal_info": personal_info_section}
         assocs: list[ResumeBlockAssociation] = []
         next_position = 1
         for block in saved_blocks:

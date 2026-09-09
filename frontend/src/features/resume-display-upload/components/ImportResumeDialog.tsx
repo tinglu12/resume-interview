@@ -46,7 +46,7 @@ export function ImportResumeDialog({ open, onParsed, onCancel }: Props) {
 
   return (
     <Dialog open={open} onOpenChange={(o) => { if (!o) { reset(); onCancel(); } }}>
-      <DialogContent className="max-w-md">
+      <DialogContent className="max-w-md sm:max-w-md">
         <DialogHeader>
           <DialogTitle>Import resume</DialogTitle>
           <p className="text-sm text-muted-foreground">

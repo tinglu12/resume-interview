@@ -40,6 +40,8 @@ def _fallback_title(block_type: str, content: dict) -> str:
         return text[:60].rstrip() + ("…" if len(text) > 60 else "") if text else "Summary"
     if block_type == "custom":
         return content.get("heading", "") or "Custom Section"
+    if block_type == "personal_info":
+        return content.get("full_name", "") or "Personal Info"
     return block_type.replace("_", " ").title()
 
 
