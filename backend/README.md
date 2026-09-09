@@ -103,6 +103,22 @@ backend/
 
 docker compose up
 
+### Resetting the local dev environment
+
+The Postgres/MinIO containers use **persistent** volumes — they don't reset when you
+switch git branches. If you switch to a branch with a different migration history
+(e.g. one that adds/drops columns another branch already applied), Alembic will fail
+with `Can't locate revision identified by '...'`, or the app will error at runtime
+because the schema doesn't match the current branch's models.
+
+When that happens, reset everything (**this destroys all local dev data — Postgres
+rows and uploaded files in MinIO — so back up anything you want to keep first, e.g.
+`docker exec backend-postgres-1 pg_dump -U postgres resume_interview > backup.sql`**):
+
+```bash
+docker compose down -v && docker compose up -d && .venv/bin/alembic upgrade head
+```
+
 ---
 
 ## Testing

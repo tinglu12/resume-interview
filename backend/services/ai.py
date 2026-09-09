@@ -25,6 +25,7 @@ Mix behavioural, situational, and role-specific technical questions. Order by re
 PARSE_BLOCKS_SYSTEM_PROMPT = """You are an expert resume parser. Decompose the given resume text into structured, typed blocks.
 
 Block types:
+- personal_info: The candidate's name and contact/header info (name, email, phone, links) — extract at most ONE of these, from the resume's header, if present
 - work_experience: A single job role at a company
 - project: A personal or professional project
 - education: A degree, certificate, or course of study
@@ -40,8 +41,10 @@ Rules:
 5. Extract bullet points as an array of strings without the bullet symbol.
 6. EVERY block MUST have a non-empty "title" field — this is required.
 7. Return ONLY valid JSON, no markdown or commentary.
+8. If the resume has a name/contact header, extract it as exactly ONE personal_info block — never split contact info across multiple blocks, and never duplicate it into a custom block.
 
 Title examples by type:
+- personal_info: use the candidate's full name, or "Personal Info" if unknown
 - work_experience: "Senior Engineer @ Acme Corp"
 - project: "OpenSearch Dashboard"
 - education: "BS Computer Science – University of Waterloo"
@@ -61,6 +64,7 @@ Output format:
 }
 
 Content fields per block_type:
+- personal_info: full_name, email, phone, linkedin, github, website, location
 - work_experience: company, role, location, start_date, end_date, is_current, bullets[], technologies[]
 - project: name, url, start_date, end_date, is_current, description, bullets[], technologies[]
 - education: institution, degree, field_of_study, location, start_date, end_date, gpa, relevant_courses[], honors[]

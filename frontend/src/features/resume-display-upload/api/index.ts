@@ -1,5 +1,5 @@
 import { apiClient } from "@/lib/api-client";
-import type { ParsedBlockPreview, Resume, ResumeBlock } from "@/types";
+import type { ParsedBlockPreview, ParseResumeResponse, Resume, ResumeBlock } from "@/types";
 
 // ── Resume listing / display ──────────────────────────────────────────────────
 
@@ -15,36 +15,34 @@ export async function deleteResume(id: string, token: string): Promise<void> {
   return apiClient.delete(`/resumes/${id}`, token);
 }
 
-// ── Upload ────────────────────────────────────────────────────────────────────
-
-export async function uploadResume(token: string, file: File): Promise<Resume> {
-  const form = new FormData();
-  form.append("resume", file);
-  return apiClient.postForm<Resume>("/resumes", token, form);
-}
-
 // ── AI parse flow ─────────────────────────────────────────────────────────────
 
 export async function parseResume(
   token: string,
-  resumeId: string
-): Promise<{ blocks: ParsedBlockPreview[] }> {
-  return apiClient.post<{ blocks: ParsedBlockPreview[] }>(
+  file: File
+): Promise<ParseResumeResponse> {
+  const form = new FormData();
+  form.append("resume", file);
+  return apiClient.postForm<ParseResumeResponse>(
     "/resume-blocks/parse",
     token,
-    { resume_id: resumeId }
+    form
   );
+}
+
+export async function cancelParsePreview(token: string, previewToken: string): Promise<void> {
+  return apiClient.delete(`/resume-blocks/parse/${previewToken}`, token);
 }
 
 export async function saveParsedBlocks(
   token: string,
   data: {
-    resume_id: string;
+    preview_token: string;
     display_name: string;
     blocks: ParsedBlockPreview[];
   }
-): Promise<{ blocks: ResumeBlock[]; assembled_resume_id: string }> {
-  return apiClient.post<{ blocks: ResumeBlock[]; assembled_resume_id: string }>(
+): Promise<{ blocks: ResumeBlock[]; resume_id: string }> {
+  return apiClient.post<{ blocks: ResumeBlock[]; resume_id: string }>(
     "/resume-blocks/save-parsed",
     token,
     data

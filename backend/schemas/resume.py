@@ -10,7 +10,6 @@ class ResumeOut(BaseModel):
     resume_url: str | None = None
     resume_type: str = "upload"
     display_name: str | None = None
-    assembled_resume_id: uuid.UUID | None = None
     created_at: datetime
 
     model_config = {"from_attributes": True}

@@ -99,7 +99,7 @@ export function ParseReviewModal({ open, blocks: initialBlocks, onSave, onCancel
 
   return (
     <Dialog open={open} onOpenChange={(o) => !o && onCancel()}>
-      <DialogContent className="max-w-3xl max-h-[85vh] p-0 gap-0 overflow-hidden flex flex-col">
+      <DialogContent className="max-w-3xl sm:max-w-3xl h-[85vh] p-0 gap-0 overflow-hidden flex flex-col">
         <DialogHeader className="px-6 pt-6 pb-4 border-b border-hairline">
           <DialogTitle className="text-lg font-bold">Review parsed blocks</DialogTitle>
           <p className="text-[13px] text-muted-foreground mt-1">

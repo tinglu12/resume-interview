@@ -1,17 +1,17 @@
-from fastapi import APIRouter, Depends, status
+from fastapi import APIRouter, Depends, File, UploadFile, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from auth import verify_clerk_token
 from database import get_db
 from schemas import (
     ParsedBlockPreview,
-    ParseResumeRequest,
     ParseResumeResponse,
     ResumeBlockOut,
     SaveParsedBlocksRequest,
     SaveParsedBlocksResponse,
 )
 from services import AiService, ResumeBlockService, ResumeService
+from services.parse_preview_cache import parse_preview_cache
 
 router = APIRouter(prefix="/resume-blocks", tags=["resume-block-parsing"])
 
@@ -40,27 +40,56 @@ def _fallback_title(block_type: str, content: dict) -> str:
         return text[:60].rstrip() + ("…" if len(text) > 60 else "") if text else "Summary"
     if block_type == "custom":
         return content.get("heading", "") or "Custom Section"
+    if block_type == "personal_info":
+        return content.get("full_name", "") or "Personal Info"
     return block_type.replace("_", " ").title()
 
 
 @router.post("/parse", response_model=ParseResumeResponse)
 async def parse_resume(
-    body: ParseResumeRequest,
+    resume: UploadFile = File(...),
     user_id: str = Depends(verify_clerk_token),
     db: AsyncSession = Depends(get_db),
 ) -> ParseResumeResponse:
-    """Parse an uploaded resume into block previews. Does NOT save to DB."""
-    resume = await ResumeService(db).get_resume(body.resume_id, user_id)
-    if not resume.resume_text:
-        from services.errors import ServiceError
+    """Parse an uploaded resume into block previews. Does NOT save to DB or R2."""
+    resume_bytes = await resume.read()
+    svc = ResumeService(db)
+    resume_text = await svc.extract_text_with_ocr_fallback(resume_bytes)
 
-        raise ServiceError(400, "Resume has no extracted text to parse")
-    raw_blocks = await AiService().parse_resume_into_blocks(resume.resume_text)
+    raw_blocks = await AiService().parse_resume_into_blocks(resume_text)
     # Fill in missing titles so the response always validates
     for block in raw_blocks:
         if not block.get("title"):
             block["title"] = _fallback_title(block.get("block_type", "custom"), block.get("content", {}))
-    return ParseResumeResponse(blocks=[ParsedBlockPreview.model_validate(b) for b in raw_blocks])
+
+    preview_token = parse_preview_cache.put(
+        {
+            "user_id": user_id,
+            "filename": resume.filename,
+            "content_type": resume.content_type,
+            "pdf_bytes": resume_bytes,
+            "resume_text": resume_text,
+        }
+    )
+    return ParseResumeResponse(
+        blocks=[ParsedBlockPreview.model_validate(b) for b in raw_blocks],
+        preview_token=preview_token,
+    )
+
+
+@router.delete("/parse/{preview_token}", status_code=status.HTTP_204_NO_CONTENT)
+async def cancel_parse_preview(
+    preview_token: str,
+    user_id: str = Depends(verify_clerk_token),
+) -> None:
+    """Discard a parsed-but-unsaved preview, e.g. when the user cancels the review modal.
+
+    Idempotent and silent on a missing/expired/foreign token — canceling a preview that's
+    already gone (or was never yours) is not an error from the caller's perspective.
+    """
+    entry = parse_preview_cache.get(preview_token)
+    if entry is not None and entry["user_id"] == user_id:
+        parse_preview_cache.pop(preview_token)
 
 
 @router.post("/save-parsed", response_model=SaveParsedBlocksResponse, status_code=status.HTTP_201_CREATED)
@@ -70,13 +99,13 @@ async def save_parsed_blocks(
     db: AsyncSession = Depends(get_db),
 ) -> SaveParsedBlocksResponse:
     svc = ResumeBlockService(db)
-    saved_blocks, assembled = await svc.save_parsed_blocks(
+    saved_blocks, resume = await svc.save_parsed_blocks(
         user_id=user_id,
-        source_resume_id=body.resume_id,
+        preview_token=body.preview_token,
         display_name=body.display_name,
         blocks_data=[b.model_dump() for b in body.blocks],
     )
     return SaveParsedBlocksResponse(
         blocks=[ResumeBlockOut.model_validate(b) for b in saved_blocks],
-        assembled_resume_id=assembled.id,
+        resume_id=resume.id,
     )
