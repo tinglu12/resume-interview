@@ -2,17 +2,28 @@ import uuid
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from models import Resume, ResumeBlock, ResumeBlockAssociation
+from models import Resume, ResumeBlock, ResumeBlockAssociation, ResumeSection
 from repositories import ResumeBlockRepository, ResumeRepository
 from schemas.resume_block import CONTENT_SCHEMA_MAP, VALID_BLOCK_TYPES
 from services.errors import ServiceError
+from services.parse_preview_cache import ParsePreviewCache, parse_preview_cache
+from services.resume_section_service import SECTION_DEFAULT_NAMES
+from services.resume_service import ResumeService
 
 
 class ResumeBlockService:
-    def __init__(self, db: AsyncSession):
+    def __init__(
+        self,
+        db: AsyncSession,
+        *,
+        resume_service: ResumeService | None = None,
+        cache: ParsePreviewCache | None = None,
+    ):
         self._blocks = ResumeBlockRepository(db)
         self._resumes = ResumeRepository(db)
         self._db = db
+        self._resume_service = resume_service or ResumeService(db)
+        self._cache = cache or parse_preview_cache
 
     # ── Content validation ────────────────────────────────────────────────────
 
@@ -34,7 +45,6 @@ class ResumeBlockService:
         block_type: str,
         title: str,
         content: dict,
-        source_resume_id: uuid.UUID | None = None,
     ) -> ResumeBlock:
         validated_content = self._validate_content(block_type, content)
         block = ResumeBlock(
@@ -42,7 +52,6 @@ class ResumeBlockService:
             block_type=block_type,
             title=title,
             content=validated_content,
-            source_resume_id=source_resume_id,
         )
         return await self._blocks.create(block)
 
@@ -151,18 +160,35 @@ class ResumeBlockService:
         self,
         *,
         user_id: str,
-        source_resume_id: uuid.UUID,
+        preview_token: str,
         display_name: str,
         blocks_data: list[dict],
     ) -> tuple[list[ResumeBlock], Resume]:
         """
-        Save AI-parsed blocks, create an assembled resume from them in order,
-        and link the source uploaded resume back to the assembled resume.
-        Returns (saved_blocks, assembled_resume).
+        Finalize a previously-parsed (but not yet persisted) resume: upload
+        the cached PDF to storage, create the single Resume row for it, save
+        the AI-parsed blocks, and attach them to the resume in order.
+        Returns (saved_blocks, resume).
         """
-        source_resume = await self._resumes.get_by_id_for_user(source_resume_id, user_id)
-        if not source_resume:
-            raise ServiceError(404, "Source resume not found")
+        entry = self._cache.pop(preview_token)
+        if entry is None or entry["user_id"] != user_id:
+            raise ServiceError(400, "Preview expired or not found, please re-upload your resume")
+
+        resume_url = await self._resume_service.upload_resume_bytes(
+            resume_bytes=entry["pdf_bytes"], content_type=entry["content_type"]
+        )
+
+        resume = Resume(
+            user_id=user_id,
+            filename=entry["filename"],
+            resume_url=resume_url,
+            resume_text=entry["resume_text"],
+            resume_type="builder",
+            display_name=display_name,
+        )
+        self._db.add(resume)
+        await self._db.commit()
+        await self._db.refresh(resume)
 
         # Validate and build block models
         block_models = []
@@ -177,41 +203,62 @@ class ResumeBlockService:
                     block_type=block_type,
                     title=title,
                     content=validated_content,
-                    source_resume_id=source_resume_id,
                 )
             )
 
-        saved_blocks = await self._blocks.create_many(block_models)
+        saved_blocks = await self._blocks.create_many(block_models) if block_models else []
 
-        # Create the assembled resume
-        assembled = Resume(
-            user_id=user_id,
-            filename=display_name,
-            resume_type="builder",
-            display_name=display_name,
-            resume_url=None,
-            resume_text=None,
+        # Auto-create the pinned personal_info section, matching every other resume-creation path
+        personal_info_section = ResumeSection(
+            resume_id=resume.id,
+            section_type="personal_info",
+            display_name="Contact",
+            position=0,
         )
-        self._db.add(assembled)
-        await self._db.commit()
-        await self._db.refresh(assembled)
+        self._db.add(personal_info_section)
 
-        # Attach blocks to the assembled resume in order
-        assocs = [
-            ResumeBlockAssociation(
-                resume_id=assembled.id,
-                block_id=block.id,
-                position=i,
+        # Group blocks by type (preserving first-appearance order) into one section per type,
+        # so a parsed-and-saved resume shows up populated instead of blank in the editor.
+        sections_by_type: dict[str, ResumeSection] = {}
+        assocs: list[ResumeBlockAssociation] = []
+        next_position = 1
+        for block in saved_blocks:
+            section = sections_by_type.get(block.block_type)
+            if section is None:
+                default_name = block.block_type.replace("_", " ").title()
+                section = ResumeSection(
+                    resume_id=resume.id,
+                    section_type=block.block_type,
+                    display_name=SECTION_DEFAULT_NAMES.get(block.block_type, default_name),
+                    position=next_position,
+                )
+                self._db.add(section)
+                sections_by_type[block.block_type] = section
+                next_position += 1
+
+        if sections_by_type:
+            await self._db.flush()  # assign section ids before building associations
+
+        section_position: dict[str, int] = {}
+        for block in saved_blocks:
+            section = sections_by_type[block.block_type]
+            position = section_position.get(block.block_type, 0)
+            section_position[block.block_type] = position + 1
+            assocs.append(
+                ResumeBlockAssociation(
+                    resume_id=resume.id,
+                    block_id=block.id,
+                    section_id=section.id,
+                    position=position,
+                )
             )
-            for i, block in enumerate(saved_blocks)
-        ]
-        await self._blocks.create_associations(assocs)
 
-        # Link the uploaded resume → assembled resume
-        source_resume.assembled_resume_id = assembled.id
-        await self._db.commit()
+        if assocs:
+            await self._blocks.create_associations(assocs)
+        else:
+            await self._db.commit()
 
-        return saved_blocks, assembled
+        return saved_blocks, resume
 
     # ── Text rendering for job compatibility ──────────────────────────────────
 

@@ -6,7 +6,6 @@ export interface Resume {
   resume_url: string | null;
   resume_type: "upload" | "builder";
   display_name: string | null;
-  assembled_resume_id: string | null;
   created_at: string;
 }
 
@@ -107,7 +106,6 @@ export interface ResumeBlock {
   block_type: BlockType;
   title: string;
   content: BlockContent;
-  source_resume_id: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -133,4 +131,9 @@ export interface ParsedBlockPreview {
   block_type: BlockType;
   title: string;
   content: BlockContent;
+}
+
+export interface ParseResumeResponse {
+  blocks: ParsedBlockPreview[];
+  preview_token: string;
 }

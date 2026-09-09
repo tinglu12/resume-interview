@@ -15,18 +15,18 @@ import { ResumeLibrarySection } from "./_components/ResumeLibrarySection";
 export function DashboardClient() {
   const router = useRouter();
 
-  const { resumes, assembledResumes, loading: resumesLoading } = useResumeFetch();
+  const { assembledResumes, loading: resumesLoading } = useResumeFetch();
   const { saveParsed, isSaving, error: saveError } = useResumeImport();
 
   // UI state
   const [showImport, setShowImport] = useState(false);
-  const [parseSource, setParseSource] = useState<string | null>(null);
+  const [previewToken, setPreviewToken] = useState<string | null>(null);
   const [parsedBlocks, setParsedBlocks] = useState<ParsedBlockPreview[]>([]);
   const [showReview, setShowReview] = useState(false);
   const [duplicating, setDuplicating] = useState<Resume | null>(null);
 
-  function handleParsed(resumeId: string, blocks: ParsedBlockPreview[]) {
-    setParseSource(resumeId);
+  function handleParsed(token: string, blocks: ParsedBlockPreview[]) {
+    setPreviewToken(token);
     setParsedBlocks(blocks);
     setShowImport(false);
     setShowReview(true);
@@ -36,15 +36,15 @@ export function DashboardClient() {
     displayName: string,
     blocks: ParsedBlockPreview[],
   ) {
-    if (!parseSource) return;
+    if (!previewToken) return;
     try {
       const result = await saveParsed({
-        resume_id: parseSource,
+        preview_token: previewToken,
         display_name: displayName,
         blocks,
       });
       setShowReview(false);
-      router.push(`/dashboard/resumes/${result.assembled_resume_id}`);
+      router.push(`/dashboard/resumes/${result.resume_id}`);
     } catch {
       // surfaced via `saveError` from the hook
     }
@@ -70,8 +70,6 @@ export function DashboardClient() {
       {/* Import dialog */}
       <ImportResumeDialog
         open={showImport}
-        resumes={resumes}
-        loadingResumes={resumesLoading}
         onParsed={handleParsed}
         onCancel={() => setShowImport(false)}
       />

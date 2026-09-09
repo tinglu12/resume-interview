@@ -109,7 +109,6 @@ class ResumeBlockOut(BaseModel):
     block_type: str
     title: str
     content: dict
-    source_resume_id: uuid.UUID | None = None
     created_at: datetime
     updated_at: datetime
 
@@ -117,10 +116,6 @@ class ResumeBlockOut(BaseModel):
 
 
 # ── Parse flow schemas ────────────────────────────────────────────────────────
-
-
-class ParseResumeRequest(BaseModel):
-    resume_id: uuid.UUID
 
 
 class ParsedBlockPreview(BaseModel):
@@ -131,17 +126,18 @@ class ParsedBlockPreview(BaseModel):
 
 class ParseResumeResponse(BaseModel):
     blocks: list[ParsedBlockPreview]
+    preview_token: str
 
 
 class SaveParsedBlocksRequest(BaseModel):
-    resume_id: uuid.UUID
+    preview_token: str
     display_name: str
     blocks: list[ResumeBlockCreate]
 
 
 class SaveParsedBlocksResponse(BaseModel):
     blocks: list[ResumeBlockOut]
-    assembled_resume_id: uuid.UUID
+    resume_id: uuid.UUID
 
 
 # ── Assembly schemas ──────────────────────────────────────────────────────────

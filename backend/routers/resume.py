@@ -1,6 +1,6 @@
 import uuid
 
-from fastapi import APIRouter, Depends, File, UploadFile, status
+from fastapi import APIRouter, Depends, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from auth import verify_clerk_token
@@ -9,22 +9,6 @@ from schemas import ResumeOut
 from services import ResumeService
 
 router = APIRouter(prefix="/resumes", tags=["resumes"])
-
-
-@router.post("", response_model=ResumeOut, status_code=status.HTTP_201_CREATED)
-async def create_resume(
-    resume: UploadFile = File(...),
-    user_id: str = Depends(verify_clerk_token),
-    db: AsyncSession = Depends(get_db),
-) -> ResumeOut:
-    resume_bytes = await resume.read()
-    created = await ResumeService(db).upload_resume(
-        user_id=user_id,
-        filename=resume.filename,
-        resume_bytes=resume_bytes,
-        content_type=resume.content_type,
-    )
-    return ResumeOut.model_validate(created)
 
 
 @router.get("/{resume_id}", response_model=ResumeOut)

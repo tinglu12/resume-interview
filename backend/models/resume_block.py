@@ -4,7 +4,7 @@ import uuid
 from datetime import datetime
 from typing import TYPE_CHECKING
 
-from sqlalchemy import TIMESTAMP, ForeignKey, Text, func
+from sqlalchemy import TIMESTAMP, Text, func
 from sqlalchemy.dialects.postgresql import JSONB, UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -23,12 +23,6 @@ class ResumeBlock(Base):
     # work_experience | project | education | skills | summary | custom
     title: Mapped[str] = mapped_column(Text, nullable=False)
     content: Mapped[dict] = mapped_column(JSONB, nullable=False)
-    # Which uploaded PDF this block was parsed from (nullable for manually created blocks)
-    source_resume_id: Mapped[uuid.UUID | None] = mapped_column(
-        UUID(as_uuid=True),
-        ForeignKey("resumes.id", ondelete="SET NULL"),
-        nullable=True,
-    )
     created_at: Mapped[datetime] = mapped_column(TIMESTAMP(timezone=True), server_default=func.now())
     updated_at: Mapped[datetime] = mapped_column(
         TIMESTAMP(timezone=True), server_default=func.now(), onupdate=func.now()

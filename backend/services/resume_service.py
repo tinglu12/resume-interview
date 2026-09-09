@@ -10,6 +10,15 @@ from services.pdf import PdfService
 from services.storage import StorageService
 
 
+def _validate_pdf(pdf_bytes: bytes, content_type: str | None) -> None:
+    if content_type not in ("application/pdf", "application/octet-stream"):
+        raise ServiceError(400, "Resume must be a PDF file")
+    if not pdf_bytes:
+        raise ServiceError(400, "Resume bytes are required")
+    if not pdf_bytes.startswith(b"%PDF"):
+        raise ServiceError(400, "File does not appear to be a valid PDF")
+
+
 class ResumeService:
     def __init__(
         self,
@@ -56,23 +65,7 @@ class ResumeService:
             raise ServiceError(400, "Resume content type is required")
 
         resume_url = await self.upload_resume_bytes(resume_bytes=resume_bytes, content_type=content_type)
-        resume_text = await self.extract_resume_text(resume_bytes=resume_bytes)
-
-        if not resume_text.strip():
-            try:
-                page_images = self._pdf.pdf_pages_as_base64_images(resume_bytes)
-            except Exception as e:
-                print(f"DEBUG: image render failed: {e}")
-                page_images = []
-            if not page_images:
-                raise ServiceError(
-                    400,
-                    "Could not read this PDF. Please try re-saving or exporting it as a new PDF and uploading again.",
-                )
-            resume_text = await self._ai.ocr_resume(page_images)
-
-        if not resume_text.strip():
-            raise ServiceError(400, "Could not extract text from the PDF")
+        resume_text = await self.extract_text_with_ocr_fallback(resume_bytes)
 
         resume = Resume(
             user_id=user_id,
@@ -86,12 +79,7 @@ class ResumeService:
         return resume
 
     async def upload_resume_bytes(self, *, resume_bytes: bytes, content_type: str) -> str:
-        if content_type not in ("application/pdf", "application/octet-stream"):
-            raise ServiceError(400, "Resume must be a PDF file")
-        if not resume_bytes:
-            raise ServiceError(400, "Resume bytes are required")
-        if not resume_bytes.startswith(b"%PDF"):
-            raise ServiceError(400, "File does not appear to be a valid PDF")
+        _validate_pdf(resume_bytes, content_type)
 
         key = f"resumes/{uuid.uuid4()}.pdf"
         return self._storage.upload_bytes(resume_bytes, key, "application/pdf")
@@ -102,3 +90,26 @@ class ResumeService:
         if not resume_bytes.startswith(b"%PDF"):
             raise ServiceError(400, "File does not appear to be a valid PDF")
         return self._pdf.extract_text(resume_bytes)
+
+    async def extract_text_with_ocr_fallback(self, pdf_bytes: bytes) -> str:
+        """Extract resume text, falling back to OCR-via-vision-model when the
+        PDF has no extractable text layer (e.g. scanned documents)."""
+        resume_text = await self.extract_resume_text(resume_bytes=pdf_bytes)
+
+        if not resume_text.strip():
+            try:
+                page_images = self._pdf.pdf_pages_as_base64_images(pdf_bytes)
+            except Exception as e:
+                print(f"DEBUG: image render failed: {e}")
+                page_images = []
+            if not page_images:
+                raise ServiceError(
+                    400,
+                    "Could not read this PDF. Please try re-saving or exporting it as a new PDF and uploading again.",
+                )
+            resume_text = await self._ai.ocr_resume(page_images)
+
+        if not resume_text.strip():
+            raise ServiceError(400, "Could not extract text from the PDF")
+
+        return resume_text
