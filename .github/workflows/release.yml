@@ -12,7 +12,17 @@ on:
     types: [published]
 
 jobs:
+  # Runs the full frontend + backend suite from ci.yml against the exact
+  # commit the release tag points at. Both deploy jobs gate on it, so a red
+  # test run means nothing ships.
+  test:
+    uses: ./.github/workflows/ci.yml
+    # The e2e job needs the Clerk keys; a called workflow gets no secrets
+    # unless they're passed explicitly.
+    secrets: inherit
+
   deploy-backend:
+    needs: test
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -27,6 +37,7 @@ jobs:
         run: railway up --service backend --detach
 
   deploy-frontend:
+    needs: test
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
