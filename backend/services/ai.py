@@ -1,6 +1,8 @@
 import json
+from typing import Any
 
 from openai import AsyncOpenAI
+from openai.types.chat import ChatCompletionContentPartParam, ChatCompletionMessageParam
 
 from config import settings
 
@@ -83,7 +85,7 @@ class AiService:
 
     async def ocr_resume(self, page_images_b64: list[str]) -> str:
         """Use GPT-4o Vision to extract text from scanned PDF page images."""
-        content = [
+        content: list[ChatCompletionContentPartParam] = [
             {
                 "type": "text",
                 "text": "Extract all text from these resume pages exactly as written. Return plain text only, preserving structure with newlines.",
@@ -96,27 +98,31 @@ class AiService:
                     "image_url": {"url": f"data:image/png;base64,{img_b64}", "detail": "high"},
                 }
             )
+        messages: list[ChatCompletionMessageParam] = [{"role": "user", "content": content}]
         response = await self._client.chat.completions.create(
             model="gpt-4o",
-            messages=[{"role": "user", "content": content}],
+            messages=messages,
             temperature=0,
         )
         return response.choices[0].message.content or ""
 
-    async def generate_questions(self, resume_text: str, job_description: str) -> list[dict]:
+    async def generate_questions(
+        self, resume_text: str, job_description: str
+    ) -> list[dict[str, Any]]:
+        messages: list[ChatCompletionMessageParam] = [
+            {"role": "system", "content": QUESTION_SYSTEM_PROMPT},
+            {
+                "role": "user",
+                "content": f"RESUME:\n{resume_text}\n\nJOB DESCRIPTION:\n{job_description}",
+            },
+        ]
         response = await self._client.chat.completions.create(
             model="gpt-4o",
-            messages=[
-                {"role": "system", "content": QUESTION_SYSTEM_PROMPT},
-                {
-                    "role": "user",
-                    "content": f"RESUME:\n{resume_text}\n\nJOB DESCRIPTION:\n{job_description}",
-                },
-            ],
+            messages=messages,
             temperature=0.7,
             response_format={"type": "json_object"},
         )
-        raw = response.choices[0].message.content
+        raw = response.choices[0].message.content or "{}"
         data = json.loads(raw)
         if isinstance(data, list):
             return data
@@ -126,34 +132,40 @@ class AiService:
             return [data]
         raise ValueError(f"Unexpected questions format from GPT: {data}")
 
-    async def parse_resume_into_blocks(self, resume_text: str) -> list[dict]:
+    async def parse_resume_into_blocks(self, resume_text: str) -> list[dict[str, Any]]:
+        messages: list[ChatCompletionMessageParam] = [
+            {"role": "system", "content": PARSE_BLOCKS_SYSTEM_PROMPT},
+            {"role": "user", "content": f"Parse this resume into blocks:\n\n{resume_text}"},
+        ]
         response = await self._client.chat.completions.create(
             model="gpt-4o",
-            messages=[
-                {"role": "system", "content": PARSE_BLOCKS_SYSTEM_PROMPT},
-                {"role": "user", "content": f"Parse this resume into blocks:\n\n{resume_text}"},
-            ],
+            messages=messages,
             temperature=0,
             response_format={"type": "json_object"},
         )
-        data = json.loads(response.choices[0].message.content)
+        raw = response.choices[0].message.content or "{}"
+        data = json.loads(raw)
         return data.get("blocks", [])
 
-    async def evaluate_answer(self, question: str, job_description: str, answer_text: str) -> dict:
+    async def evaluate_answer(
+        self, question: str, job_description: str, answer_text: str
+    ) -> dict[str, Any]:
+        messages: list[ChatCompletionMessageParam] = [
+            {"role": "system", "content": FEEDBACK_SYSTEM_PROMPT},
+            {
+                "role": "user",
+                "content": (
+                    f"JOB DESCRIPTION:\n{job_description}\n\n"
+                    f"QUESTION:\n{question}\n\n"
+                    f"CANDIDATE ANSWER:\n{answer_text}"
+                ),
+            },
+        ]
         response = await self._client.chat.completions.create(
             model="gpt-4o",
-            messages=[
-                {"role": "system", "content": FEEDBACK_SYSTEM_PROMPT},
-                {
-                    "role": "user",
-                    "content": (
-                        f"JOB DESCRIPTION:\n{job_description}\n\n"
-                        f"QUESTION:\n{question}\n\n"
-                        f"CANDIDATE ANSWER:\n{answer_text}"
-                    ),
-                },
-            ],
+            messages=messages,
             temperature=0.4,
             response_format={"type": "json_object"},
         )
-        return json.loads(response.choices[0].message.content)
+        raw = response.choices[0].message.content or "{}"
+        return json.loads(raw)
