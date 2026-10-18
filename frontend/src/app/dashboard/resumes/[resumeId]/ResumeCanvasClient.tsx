@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useCallback, useMemo, useRef, useState } from "react";
 import { DndContext, DragOverlay } from "@dnd-kit/core";
 import type { PanelImperativeHandle } from "react-resizable-panels";
 import { useBlocks } from "@/features/resume-builder/hooks/useBlocks";
@@ -48,55 +48,76 @@ export function ResumeCanvasClient({ resumeId }: Props) {
     useCanvasDnd({ sections, blocks, onSectionDragEnd, onBlockDragEnd, attachBlock });
 
   const { getUsage } = useBlockUsage();
-  const getUsageCount = (blockId: string) => getUsage(blockId).count;
-  const getUsageResumeNames = (blockId: string) => getUsage(blockId).resumeNames;
+  const getUsageCount = useCallback((blockId: string) => getUsage(blockId).count, [getUsage]);
+  const getUsageResumeNames = useCallback(
+    (blockId: string) => getUsage(blockId).resumeNames,
+    [getUsage]
+  );
 
   const activeSection = sections.find((s) => s.id === activeSectionId) ?? null;
   const activeSectionType: BlockType | null = activeSection?.section_type ?? null;
 
   // All blocks currently on the resume (for "Added" badge in library)
-  const attachedSlots = sections.flatMap((s) => s.blocks);
+  const attachedSlots = useMemo(() => sections.flatMap((s) => s.blocks), [sections]);
 
-  function handleActivateSection(id: string | null) {
-    setActiveSectionId(id);
-    if (id !== null && !libraryOpen) libraryPanelRef.current?.expand();
-  }
+  const handleActivateSection = useCallback(
+    (id: string | null) => {
+      setActiveSectionId(id);
+      if (id !== null && !libraryOpen) libraryPanelRef.current?.expand();
+    },
+    [libraryOpen]
+  );
 
-  async function handleAttach(block: { id: string }) {
-    if (!activeSectionId) return;
-    const section = sections.find((s) => s.id === activeSectionId);
-    if (!section) return;
-    await attachBlock({
-      sectionId: activeSectionId,
-      blockId: block.id,
-      position: section.blocks.length,
-    });
-  }
+  const handleAttach = useCallback(
+    async (block: { id: string }) => {
+      if (!activeSectionId) return;
+      const section = sections.find((s) => s.id === activeSectionId);
+      if (!section) return;
+      await attachBlock({
+        sectionId: activeSectionId,
+        blockId: block.id,
+        position: section.blocks.length,
+      });
+    },
+    [activeSectionId, sections, attachBlock]
+  );
 
-  async function handleDetachBlock(sectionId: string, blockId: string) {
-    await detachBlock({ sectionId, blockId });
-  }
+  const handleDetachBlock = useCallback(
+    async (sectionId: string, blockId: string) => {
+      await detachBlock({ sectionId, blockId });
+    },
+    [detachBlock]
+  );
 
-  async function handleDeleteSection(sectionId: string) {
-    await deleteSection(sectionId);
-    if (activeSectionId === sectionId) setActiveSectionId(null);
-  }
+  const handleDeleteSection = useCallback(
+    async (sectionId: string) => {
+      await deleteSection(sectionId);
+      if (activeSectionId === sectionId) setActiveSectionId(null);
+    },
+    [deleteSection, activeSectionId]
+  );
 
-  async function handleRenameSection(sectionId: string, name: string) {
-    await updateSection({ sectionId, data: { display_name: name } });
-  }
+  const handleRenameSection = useCallback(
+    async (sectionId: string, name: string) => {
+      await updateSection({ sectionId, data: { display_name: name } });
+    },
+    [updateSection]
+  );
 
-  async function handleAddSection(sectionType: BlockType, displayName: string) {
-    const position = sections.filter((s) => s.section_type !== "personal_info").length + 1;
-    await createSection({ section_type: sectionType, display_name: displayName, position });
-  }
+  const handleAddSection = useCallback(
+    async (sectionType: BlockType, displayName: string) => {
+      const position = sections.filter((s) => s.section_type !== "personal_info").length + 1;
+      await createSection({ section_type: sectionType, display_name: displayName, position });
+    },
+    [sections, createSection]
+  );
 
-  async function handleBlockSaved(
-    id: string,
-    data: { title: string; content: Record<string, unknown> }
-  ) {
-    await updateBlock({ id, data });
-  }
+  const handleBlockSaved = useCallback(
+    async (id: string, data: { title: string; content: Record<string, unknown> }) => {
+      await updateBlock({ id, data });
+    },
+    [updateBlock]
+  );
 
   return (
     <DndContext
